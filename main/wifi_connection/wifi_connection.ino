@@ -1,86 +1,51 @@
-#include <SoftwareSerial.h>
+#include <ESP8266WiFi.h>
+#include <WebSocketsClient.h>
 
-// Define SoftwareSerial pins
-SoftwareSerial espSerial(10, 11); // RX, TX
+// WiFi Credentials
+const char* ssid = "your_wifi_ssid";
+const char* password = "your_wifi_password";
 
-// Your WiFi credentials
-const char* ssid = "iPhone";
-const char* password = "11111111";
+// WebSocket server address and port (Node.js server)
+const char* webSocketServer = "your_server_ip";  // or domain name if you are using DNS
+const int webSocketPort = 3000;
 
-// Your web server details
-const char* host = "172.20.10.3"; // Replace with the local IP address of your server
-const int httpPort = 8080; // Replace with the port your server is listening on
+WebSocketsClient webSocket;
 
 void setup() {
-  Serial.begin(9600);         // Start serial for debugging
-  espSerial.begin(115200);    // Start software serial for ESP-01
+  Serial.begin(115200);
 
-  // Initialize ESP-01
-  sendATCommand("AT", 1000);
-  sendATCommand("AT+CWMODE=1", 1000);   // Set WiFi mode to STA
-  
   // Connect to WiFi
-  connectToWiFi();
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting to WiFi...");
+  }
+  Serial.println("Connected to WiFi!");
+
+  // Initialize WebSocket connection
+  webSocket.begin(webSocketServer, webSocketPort, "/");
   
-  // Connect to the web server and send a GET request
-  sendGetRequest();
+  // Event handler for WebSocket events
+  webSocket.onEvent(webSocketEvent);
+}
+
+void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
+  switch(type) {
+    case WStype_DISCONNECTED:
+      Serial.println("WebSocket Disconnected");
+      break;
+    case WStype_CONNECTED:
+      Serial.println("WebSocket Connected");
+      // Send a message when connected
+      webSocket.sendTXT("Hello from ESP8266!");
+      break;
+    case WStype_TEXT:
+      // Handle incoming messages from the server
+      Serial.printf("Message from server: %s\n", payload);
+      break;
+  }
 }
 
 void loop() {
-  // Print responses from ESP-01
-  while (espSerial.available()) {
-    Serial.print((char)espSerial.read());
-  }
-}
-
-void connectToWiFi() {
-  String cmd = "AT+CWJAP=\"";
-  cmd += ssid;
-  cmd += "\",\"";
-  cmd += password;
-  cmd += "\"";
-  
-  sendATCommand(cmd, 30000); // Increased timeout for connecting to WiFi
-}
-
-void sendGetRequest() {
-  // Start connection to the server
-  String connectCmd = "AT+CIPSTART=\"TCP\",\"";
-  connectCmd += host; // IP address or domain name
-  connectCmd += "\",";
-  connectCmd += String(httpPort); // Port number
-  
-  sendATCommand(connectCmd, 10000); // Connect to the server
-  
-  // Send GET request
-  String httpRequest = "GET /api/kurwa HTTP/1.1\r\n";
-  httpRequest += "Host: ";
-  httpRequest += host; // The same IP address or domain name
-  httpRequest += "\r\n";
-  httpRequest += "Connection: close\r\n\r\n";
-  
-  // Send length of the request to the ESP-01
-  String sendCmd = "AT+CIPSEND=";
-  sendCmd += String(httpRequest.length());
-  sendATCommand(sendCmd, 1000); // Send length command
-  
-  // Delay to allow ESP-01 to process the command
-  delay(1000);
-  
-  // Send actual GET request
-  espSerial.print(httpRequest);
-}
-
-
-void sendATCommand(String command, const int timeout) {
-  Serial.println("Sending command: " + command); // Debugging
-  espSerial.println(command);
-  long int time = millis();
-  while ((millis() - time) < timeout) {
-    while (espSerial.available()) {
-      char c = espSerial.read();
-      Serial.print(c);  // Print ESP-01 response to Serial Monitor
-    }
-  }
-  Serial.println(); // Newline for readability
+  webSocket.loop(); // Keep WebSocket connection alive
 }

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+<h2>Control the system</h2>
+<p>Pump</p>
+<button onclick="pumpOnBtnCLickHandler()">ON</button>
+<button onclick="pumpOffBtnCLickHandler()">OFF</button>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
+<script>
+    const socket = io();
+    socket.on("connect", () => {
+        console.log("Connected to the server!");
+        console.log(socket.id);
+    });
+
+    function pumpOnBtnCLickHandler (){
+        console.log('pupm btn clicked');
+        socket.emit('pump', 'on');
+    }
+    function pumpOffBtnCLickHandler (){
+        console.log('pupm btn clicked');
+        socket.emit('pump', 'off');
+    }
+
+</script>
+</body>
+</html>
