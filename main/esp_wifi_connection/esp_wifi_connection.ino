@@ -6,13 +6,98 @@
 
 #include <ArduinoJson.h>
 
-#include <WebSocketsClient.h>
+//#include <WebSocketsClient.h>
 #include <SocketIOclient.h>
+
 
 WiFiMulti WiFiMulti;
 SocketIOclient socketIO;
 
+#define BUTTON_PIN 21  // GIOP21 pin connected to button
+#define LED 22
+#define SOIL 15
+// Variables will change:
+int lastState = LOW;  // the previous state from the input pin
+int currentState; 
+
 #define USE_SERIAL Serial
+
+const char* jsonString = R"({
+    "timestamp": "2024-10-03T18:40:49.988Z",
+    "data": {
+      "timestamp": "2024-09-10T16:18:48.755Z",
+      "data": {
+        "system": {
+          "id": 0,
+          "components": {
+            "valves": [
+              {
+                "id": 1,
+                "name": "Valve 1",
+                "status": false,
+                "location": "zone 1"
+              },
+              {
+                "id": 2,
+                "name": "Valve 2",
+                "status": false,
+                "location": "zone 2"
+              },
+              {
+                "id": 3,
+                "name": "Valve 3",
+                "status": false,
+                "location": "zone 3"
+              }
+            ],
+            "pump": {
+              "id": 1,
+              "name": "Water Pump",
+              "status": false
+            },
+            "sensors": {
+              "soilMoistureSensors": [
+                {
+                  "id": 1,
+                  "name": "Soil Moisture Sensor 1",
+                  "value": 30,
+                  "unit": "%",
+                  "location": "zone 1"
+                },
+                {
+                  "id": 2,
+                  "name": "Soil Moisture Sensor 2",
+                  "value": 28.5,
+                  "unit": "%",
+                  "location": "zone 2"
+                }
+              ],
+              "temperatureSensor": {
+                "id": 1,
+                "name": "Temperature Sensor",
+                "value": 22,
+                "unit": "°C"
+              },
+              "waterLevelSensor": {
+                "id": 1,
+                "name": "Water Level Sensor",
+                "value": 75,
+                "unit": "%",
+                "location": "tank"
+              },
+              "airHumiditySensor": {
+                "id": 1,
+                "name": "Air Humidity Sensor",
+                "value": 60,
+                "unit": "%"
+              }
+            }
+          },
+          "timestamp": "2024-09-10T12:00:00Z"
+        }
+      }
+    }
+})";
 
 // #define PUMP_IN 2
 
@@ -55,11 +140,11 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             if(eventName == "pump"){
               if(mode == "on"){
                 digitalWrite(4, HIGH);
-                console.log("pump high");
+                USE_SERIAL.printf("pump high");
               }
               else if(mode == "off"){
                 digitalWrite(4, LOW);
-                console.log("pump low");
+                USE_SERIAL.printf("pump low");
               }
             }
 
@@ -100,7 +185,55 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
     }
 }
 
+void sendEmit(String name){
+  DynamicJsonDocument doc(1024);
+  JsonArray array = doc.to<JsonArray>();
+
+  // add evnet name
+  // Hint: socket.on('event_name', ....
+  array.add(name);
+
+  // add payload (parameters) for the event
+  JsonObject param1 = array.createNestedObject();
+  param1["val"] = true;
+
+  // JSON to String (serializion)
+  String output;
+  serializeJson(doc, output);
+
+  // Send event
+  socketIO.sendEVENT(output);
+
+  // Print JSON for debugging
+  USE_SERIAL.println(output);
+}
+
+void sendEmitJson(String name) {
+    DynamicJsonDocument doc(1024); // Create a JSON document
+    JsonArray array = doc.to<JsonArray>(); // Create an array in the document
+
+    // Add event name to the array
+    array.add(name); // Use the 'name' parameter as the event name
+
+    // Create an object to hold parameters
+    JsonObject param1 = array.createNestedObject();
+    param1["val"] = jsonString; // Add your JSON string to the parameters
+
+    // Serialize the JSON document to a String
+    String output;
+    serializeJson(doc, output); // Serialize the document into the output string
+
+    // Send event
+    socketIO.sendEVENT(output); // Send the output string through Socket.IO
+
+    // Print JSON for debugging
+    USE_SERIAL.println(output);
+}
+
+unsigned long messageTimestamp = 0;
+
 void setup() {
+
     USE_SERIAL.begin(115200);
     USE_SERIAL.setDebugOutput(true);
 
@@ -110,12 +243,16 @@ void setup() {
 
   //  pinMode(PUMP_IN, OUTPUT);
     pinMode(4, OUTPUT);
+    pinMode(LED,OUTPUT);
+    pinMode(BUTTON_PIN, INPUT_PULLUP);
+    
     digitalWrite(4, LOW);
-      for(uint8_t t = 4; t > 0; t--) {
-          USE_SERIAL.printf("[SETUP] BOOT WAIT %d...\n", t);
-          USE_SERIAL.flush();
-          delay(1000);
-      }
+    
+    for(uint8_t t = 4; t > 0; t--) {
+        USE_SERIAL.printf("[SETUP] BOOT WAIT %d...\n", t);
+        USE_SERIAL.flush();
+        delay(1000);
+    }
 
     WiFiMulti.addAP("DESKTOP_VLADGOG", "ajyzfajyz");
 
@@ -133,39 +270,21 @@ void setup() {
     // event handler
     socketIO.onEvent(socketIOEvent);
 
-    //socketIO.sendEVENT("master");
-    socketIO.sendEVENT("master");
+    sendEmit("master");
 }
 
-unsigned long messageTimestamp = 0;
 void loop() {
-    socketIO.loop();
-
-    uint64_t now = millis();
-
-    if(now - messageTimestamp > 20000) {
-        messageTimestamp = now;
-
-        // creat JSON message for Socket.IO (event)
-        DynamicJsonDocument doc(1024);
-        JsonArray array = doc.to<JsonArray>();
-
-        // add evnet name
-        // Hint: socket.on('event_name', ....
-        array.add("master");
-
-        // add payload (parameters) for the event
-        JsonObject param1 = array.createNestedObject();
-        param1["val"] = true;
-
-        // JSON to String (serializion)
-        String output;
-        serializeJson(doc, output);
-
-        // Send event
-        socketIO.sendEVENT(output);
-
-        // Print JSON for debugging
-        USE_SERIAL.println(output);
-    }
+  socketIO.loop();// read the state of the switch/button:
+  currentState = digitalRead(BUTTON_PIN);
+  if (lastState == HIGH && currentState == LOW){
+    sendEmitJson("kefteme");
+    digitalWrite(LED, HIGH);
+    Serial.println("The button is pressed");
+  }
+  else if (lastState == LOW && currentState == HIGH){
+    digitalWrite(LED, LOW);
+    Serial.println("The button is released");
+  }
+  // save the the last state
+  lastState = currentState;
 }

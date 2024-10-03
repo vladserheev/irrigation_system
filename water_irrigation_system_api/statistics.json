@@ -1,147 +1,761 @@
 [
   {
-    "timestamp": "2024-09-10T16:18:41.466Z",
+    "timestamp": "2024-10-03T18:40:49.988Z",
     "data": {
-      "system": {
-        "id": 0,
-        "components": {
-          "valves": [
-            {
-              "id": 1,
-              "name": "Valve 1",
-              "status": false,
-              "location": "zone 1"
-            },
-            {
-              "id": 2,
-              "name": "Valve 2",
-              "status": false,
-              "location": "zone 2"
-            },
-            {
-              "id": 3,
-              "name": "Valve 3",
-              "status": false,
-              "location": "zone 3"
-            }
-          ],
-          "pump": {
-            "id": 1,
-            "name": "Water Pump",
-            "status": false
-          },
-          "sensors": {
-            "soilMoistureSensors": [
+      "timestamp": "2024-09-10T16:18:48.755Z",
+      "data": {
+        "system": {
+          "id": 0,
+          "components": {
+            "valves": [
               {
                 "id": 1,
-                "name": "Soil Moisture Sensor 1",
-                "value": 30,
-                "unit": "%",
+                "name": "Valve 1",
+                "status": false,
                 "location": "zone 1"
               },
               {
                 "id": 2,
-                "name": "Soil Moisture Sensor 2",
-                "value": 28.5,
-                "unit": "%",
+                "name": "Valve 2",
+                "status": false,
                 "location": "zone 2"
+              },
+              {
+                "id": 3,
+                "name": "Valve 3",
+                "status": false,
+                "location": "zone 3"
               }
             ],
-            "temperatureSensor": {
+            "pump": {
               "id": 1,
-              "name": "Temperature Sensor",
-              "value": 22,
-              "unit": "°C"
+              "name": "Water Pump",
+              "status": false
             },
-            "waterLevelSensor": {
-              "id": 1,
-              "name": "Water Level Sensor",
-              "value": 75,
-              "unit": "%",
-              "location": "tank"
-            },
-            "airHumiditySensor": {
-              "id": 1,
-              "name": "Air Humidity Sensor",
-              "value": 60,
-              "unit": "%"
+            "sensors": {
+              "soilMoistureSensors": [
+                {
+                  "id": 1,
+                  "name": "Soil Moisture Sensor 1",
+                  "value": 30,
+                  "unit": "%",
+                  "location": "zone 1"
+                },
+                {
+                  "id": 2,
+                  "name": "Soil Moisture Sensor 2",
+                  "value": 28.5,
+                  "unit": "%",
+                  "location": "zone 2"
+                }
+              ],
+              "temperatureSensor": {
+                "id": 1,
+                "name": "Temperature Sensor",
+                "value": 22,
+                "unit": "°C"
+              },
+              "waterLevelSensor": {
+                "id": 1,
+                "name": "Water Level Sensor",
+                "value": 75,
+                "unit": "%",
+                "location": "tank"
+              },
+              "airHumiditySensor": {
+                "id": 1,
+                "name": "Air Humidity Sensor",
+                "value": 60,
+                "unit": "%"
+              }
             }
-          }
-        },
-        "timestamp": "2024-09-10T12:00:00Z"
+          },
+          "timestamp": "2024-09-10T12:00:00Z"
+        }
       }
     }
   },
   {
-    "timestamp": "2024-09-10T16:18:48.755Z",
+    "timestamp": "2024-10-03T18:42:08.179Z",
     "data": {
-      "system": {
-        "id": 0,
-        "components": {
-          "valves": [
-            {
-              "id": 1,
-              "name": "Valve 1",
-              "status": false,
-              "location": "zone 1"
-            },
-            {
-              "id": 2,
-              "name": "Valve 2",
-              "status": false,
-              "location": "zone 2"
-            },
-            {
-              "id": 3,
-              "name": "Valve 3",
-              "status": false,
-              "location": "zone 3"
-            }
-          ],
-          "pump": {
-            "id": 1,
-            "name": "Water Pump",
-            "status": false
-          },
-          "sensors": {
-            "soilMoistureSensors": [
+      "timestamp": "2024-09-10T16:18:48.755Z",
+      "data": {
+        "system": {
+          "id": 0,
+          "components": {
+            "valves": [
               {
                 "id": 1,
-                "name": "Soil Moisture Sensor 1",
-                "value": 30,
-                "unit": "%",
+                "name": "Valve 1",
+                "status": false,
                 "location": "zone 1"
               },
               {
                 "id": 2,
-                "name": "Soil Moisture Sensor 2",
-                "value": 28.5,
-                "unit": "%",
+                "name": "Valve 2",
+                "status": false,
                 "location": "zone 2"
+              },
+              {
+                "id": 3,
+                "name": "Valve 3",
+                "status": false,
+                "location": "zone 3"
               }
             ],
-            "temperatureSensor": {
+            "pump": {
               "id": 1,
-              "name": "Temperature Sensor",
-              "value": 22,
-              "unit": "°C"
+              "name": "Water Pump",
+              "status": false
             },
-            "waterLevelSensor": {
-              "id": 1,
-              "name": "Water Level Sensor",
-              "value": 75,
-              "unit": "%",
-              "location": "tank"
-            },
-            "airHumiditySensor": {
-              "id": 1,
-              "name": "Air Humidity Sensor",
-              "value": 60,
-              "unit": "%"
+            "sensors": {
+              "soilMoistureSensors": [
+                {
+                  "id": 1,
+                  "name": "Soil Moisture Sensor 1",
+                  "value": 30,
+                  "unit": "%",
+                  "location": "zone 1"
+                },
+                {
+                  "id": 2,
+                  "name": "Soil Moisture Sensor 2",
+                  "value": 28.5,
+                  "unit": "%",
+                  "location": "zone 2"
+                }
+              ],
+              "temperatureSensor": {
+                "id": 1,
+                "name": "Temperature Sensor",
+                "value": 22,
+                "unit": "°C"
+              },
+              "waterLevelSensor": {
+                "id": 1,
+                "name": "Water Level Sensor",
+                "value": 75,
+                "unit": "%",
+                "location": "tank"
+              },
+              "airHumiditySensor": {
+                "id": 1,
+                "name": "Air Humidity Sensor",
+                "value": 60,
+                "unit": "%"
+              }
             }
-          }
-        },
-        "timestamp": "2024-09-10T12:00:00Z"
+          },
+          "timestamp": "2024-09-10T12:00:00Z"
+        }
+      }
+    }
+  },
+  {
+    "timestamp": "2024-10-03T18:42:17.971Z",
+    "data": {
+      "timestamp": "2024-09-10T16:18:48.755Z",
+      "data": {
+        "system": {
+          "id": 0,
+          "components": {
+            "valves": [
+              {
+                "id": 1,
+                "name": "Valve 1",
+                "status": false,
+                "location": "zone 1"
+              },
+              {
+                "id": 2,
+                "name": "Valve 2",
+                "status": false,
+                "location": "zone 2"
+              },
+              {
+                "id": 3,
+                "name": "Valve 3",
+                "status": false,
+                "location": "zone 3"
+              }
+            ],
+            "pump": {
+              "id": 1,
+              "name": "Water Pump",
+              "status": false
+            },
+            "sensors": {
+              "soilMoistureSensors": [
+                {
+                  "id": 1,
+                  "name": "Soil Moisture Sensor 1",
+                  "value": 30,
+                  "unit": "%",
+                  "location": "zone 1"
+                },
+                {
+                  "id": 2,
+                  "name": "Soil Moisture Sensor 2",
+                  "value": 28.5,
+                  "unit": "%",
+                  "location": "zone 2"
+                }
+              ],
+              "temperatureSensor": {
+                "id": 1,
+                "name": "Temperature Sensor",
+                "value": 22,
+                "unit": "°C"
+              },
+              "waterLevelSensor": {
+                "id": 1,
+                "name": "Water Level Sensor",
+                "value": 75,
+                "unit": "%",
+                "location": "tank"
+              },
+              "airHumiditySensor": {
+                "id": 1,
+                "name": "Air Humidity Sensor",
+                "value": 60,
+                "unit": "%"
+              }
+            }
+          },
+          "timestamp": "2024-09-10T12:00:00Z"
+        }
+      }
+    }
+  },
+  {
+    "timestamp": "2024-10-03T18:44:00.950Z",
+    "data": {
+      "timestamp": "2024-09-10T16:18:48.755Z",
+      "data": {
+        "system": {
+          "id": 0,
+          "components": {
+            "valves": [
+              {
+                "id": 1,
+                "name": "Valve 1",
+                "status": false,
+                "location": "zone 1"
+              },
+              {
+                "id": 2,
+                "name": "Valve 2",
+                "status": false,
+                "location": "zone 2"
+              },
+              {
+                "id": 3,
+                "name": "Valve 3",
+                "status": false,
+                "location": "zone 3"
+              }
+            ],
+            "pump": {
+              "id": 1,
+              "name": "Water Pump",
+              "status": false
+            },
+            "sensors": {
+              "soilMoistureSensors": [
+                {
+                  "id": 1,
+                  "name": "Soil Moisture Sensor 1",
+                  "value": 30,
+                  "unit": "%",
+                  "location": "zone 1"
+                },
+                {
+                  "id": 2,
+                  "name": "Soil Moisture Sensor 2",
+                  "value": 28.5,
+                  "unit": "%",
+                  "location": "zone 2"
+                }
+              ],
+              "temperatureSensor": {
+                "id": 1,
+                "name": "Temperature Sensor",
+                "value": 22,
+                "unit": "°C"
+              },
+              "waterLevelSensor": {
+                "id": 1,
+                "name": "Water Level Sensor",
+                "value": 75,
+                "unit": "%",
+                "location": "tank"
+              },
+              "airHumiditySensor": {
+                "id": 1,
+                "name": "Air Humidity Sensor",
+                "value": 60,
+                "unit": "%"
+              }
+            }
+          },
+          "timestamp": "2024-09-10T12:00:00Z"
+        }
+      }
+    }
+  },
+  {
+    "timestamp": "2024-10-03T18:44:22.271Z",
+    "data": {
+      "timestamp": "2024-09-10T16:18:48.755Z",
+      "data": {
+        "system": {
+          "id": 0,
+          "components": {
+            "valves": [
+              {
+                "id": 1,
+                "name": "Valve 1",
+                "status": false,
+                "location": "zone 1"
+              },
+              {
+                "id": 2,
+                "name": "Valve 2",
+                "status": false,
+                "location": "zone 2"
+              },
+              {
+                "id": 3,
+                "name": "Valve 3",
+                "status": false,
+                "location": "zone 3"
+              }
+            ],
+            "pump": {
+              "id": 1,
+              "name": "Water Pump",
+              "status": false
+            },
+            "sensors": {
+              "soilMoistureSensors": [
+                {
+                  "id": 1,
+                  "name": "Soil Moisture Sensor 1",
+                  "value": 30,
+                  "unit": "%",
+                  "location": "zone 1"
+                },
+                {
+                  "id": 2,
+                  "name": "Soil Moisture Sensor 2",
+                  "value": 28.5,
+                  "unit": "%",
+                  "location": "zone 2"
+                }
+              ],
+              "temperatureSensor": {
+                "id": 1,
+                "name": "Temperature Sensor",
+                "value": 22,
+                "unit": "°C"
+              },
+              "waterLevelSensor": {
+                "id": 1,
+                "name": "Water Level Sensor",
+                "value": 75,
+                "unit": "%",
+                "location": "tank"
+              },
+              "airHumiditySensor": {
+                "id": 1,
+                "name": "Air Humidity Sensor",
+                "value": 60,
+                "unit": "%"
+              }
+            }
+          },
+          "timestamp": "2024-09-10T12:00:00Z"
+        }
+      }
+    }
+  },
+  {
+    "timestamp": "2024-10-03T18:44:37.845Z",
+    "data": {
+      "timestamp": "2024-09-10T16:18:48.755Z",
+      "data": {
+        "system": {
+          "id": 0,
+          "components": {
+            "valves": [
+              {
+                "id": 1,
+                "name": "Valve 1",
+                "status": false,
+                "location": "zone 1"
+              },
+              {
+                "id": 2,
+                "name": "Valve 2",
+                "status": false,
+                "location": "zone 2"
+              },
+              {
+                "id": 3,
+                "name": "Valve 3",
+                "status": false,
+                "location": "zone 3"
+              }
+            ],
+            "pump": {
+              "id": 1,
+              "name": "Water Pump",
+              "status": false
+            },
+            "sensors": {
+              "soilMoistureSensors": [
+                {
+                  "id": 1,
+                  "name": "Soil Moisture Sensor 1",
+                  "value": 30,
+                  "unit": "%",
+                  "location": "zone 1"
+                },
+                {
+                  "id": 2,
+                  "name": "Soil Moisture Sensor 2",
+                  "value": 28.5,
+                  "unit": "%",
+                  "location": "zone 2"
+                }
+              ],
+              "temperatureSensor": {
+                "id": 1,
+                "name": "Temperature Sensor",
+                "value": 22,
+                "unit": "°C"
+              },
+              "waterLevelSensor": {
+                "id": 1,
+                "name": "Water Level Sensor",
+                "value": 75,
+                "unit": "%",
+                "location": "tank"
+              },
+              "airHumiditySensor": {
+                "id": 1,
+                "name": "Air Humidity Sensor",
+                "value": 60,
+                "unit": "%"
+              }
+            }
+          },
+          "timestamp": "2024-09-10T12:00:00Z"
+        }
+      }
+    }
+  },
+  {
+    "timestamp": "2024-10-03T18:45:22.954Z",
+    "data": {
+      "timestamp": "2024-09-10T16:18:48.755Z",
+      "data": {
+        "system": {
+          "id": 0,
+          "components": {
+            "valves": [
+              {
+                "id": 1,
+                "name": "Valve 1",
+                "status": false,
+                "location": "zone 1"
+              },
+              {
+                "id": 2,
+                "name": "Valve 2",
+                "status": false,
+                "location": "zone 2"
+              },
+              {
+                "id": 3,
+                "name": "Valve 3",
+                "status": false,
+                "location": "zone 3"
+              }
+            ],
+            "pump": {
+              "id": 1,
+              "name": "Water Pump",
+              "status": false
+            },
+            "sensors": {
+              "soilMoistureSensors": [
+                {
+                  "id": 1,
+                  "name": "Soil Moisture Sensor 1",
+                  "value": 30,
+                  "unit": "%",
+                  "location": "zone 1"
+                },
+                {
+                  "id": 2,
+                  "name": "Soil Moisture Sensor 2",
+                  "value": 28.5,
+                  "unit": "%",
+                  "location": "zone 2"
+                }
+              ],
+              "temperatureSensor": {
+                "id": 1,
+                "name": "Temperature Sensor",
+                "value": 22,
+                "unit": "°C"
+              },
+              "waterLevelSensor": {
+                "id": 1,
+                "name": "Water Level Sensor",
+                "value": 75,
+                "unit": "%",
+                "location": "tank"
+              },
+              "airHumiditySensor": {
+                "id": 1,
+                "name": "Air Humidity Sensor",
+                "value": 60,
+                "unit": "%"
+              }
+            }
+          },
+          "timestamp": "2024-09-10T12:00:00Z"
+        }
+      }
+    }
+  },
+  {
+    "timestamp": "2024-10-03T18:45:43.503Z",
+    "data": {
+      "timestamp": "2024-09-10T16:18:48.755Z",
+      "data": {
+        "system": {
+          "id": 0,
+          "components": {
+            "valves": [
+              {
+                "id": 1,
+                "name": "Valve 1",
+                "status": false,
+                "location": "zone 1"
+              },
+              {
+                "id": 2,
+                "name": "Valve 2",
+                "status": false,
+                "location": "zone 2"
+              },
+              {
+                "id": 3,
+                "name": "Valve 3",
+                "status": false,
+                "location": "zone 3"
+              }
+            ],
+            "pump": {
+              "id": 1,
+              "name": "Water Pump",
+              "status": false
+            },
+            "sensors": {
+              "soilMoistureSensors": [
+                {
+                  "id": 1,
+                  "name": "Soil Moisture Sensor 1",
+                  "value": 30,
+                  "unit": "%",
+                  "location": "zone 1"
+                },
+                {
+                  "id": 2,
+                  "name": "Soil Moisture Sensor 2",
+                  "value": 28.5,
+                  "unit": "%",
+                  "location": "zone 2"
+                }
+              ],
+              "temperatureSensor": {
+                "id": 1,
+                "name": "Temperature Sensor",
+                "value": 22,
+                "unit": "°C"
+              },
+              "waterLevelSensor": {
+                "id": 1,
+                "name": "Water Level Sensor",
+                "value": 75,
+                "unit": "%",
+                "location": "tank"
+              },
+              "airHumiditySensor": {
+                "id": 1,
+                "name": "Air Humidity Sensor",
+                "value": 60,
+                "unit": "%"
+              }
+            }
+          },
+          "timestamp": "2024-09-10T12:00:00Z"
+        }
+      }
+    }
+  },
+  {
+    "timestamp": "2024-10-03T18:45:48.598Z",
+    "data": {
+      "timestamp": "2024-09-10T16:18:48.755Z",
+      "data": {
+        "system": {
+          "id": 0,
+          "components": {
+            "valves": [
+              {
+                "id": 1,
+                "name": "Valve 1",
+                "status": false,
+                "location": "zone 1"
+              },
+              {
+                "id": 2,
+                "name": "Valve 2",
+                "status": false,
+                "location": "zone 2"
+              },
+              {
+                "id": 3,
+                "name": "Valve 3",
+                "status": false,
+                "location": "zone 3"
+              }
+            ],
+            "pump": {
+              "id": 1,
+              "name": "Water Pump",
+              "status": false
+            },
+            "sensors": {
+              "soilMoistureSensors": [
+                {
+                  "id": 1,
+                  "name": "Soil Moisture Sensor 1",
+                  "value": 30,
+                  "unit": "%",
+                  "location": "zone 1"
+                },
+                {
+                  "id": 2,
+                  "name": "Soil Moisture Sensor 2",
+                  "value": 28.5,
+                  "unit": "%",
+                  "location": "zone 2"
+                }
+              ],
+              "temperatureSensor": {
+                "id": 1,
+                "name": "Temperature Sensor",
+                "value": 22,
+                "unit": "°C"
+              },
+              "waterLevelSensor": {
+                "id": 1,
+                "name": "Water Level Sensor",
+                "value": 75,
+                "unit": "%",
+                "location": "tank"
+              },
+              "airHumiditySensor": {
+                "id": 1,
+                "name": "Air Humidity Sensor",
+                "value": 60,
+                "unit": "%"
+              }
+            }
+          },
+          "timestamp": "2024-09-10T12:00:00Z"
+        }
+      }
+    }
+  },
+  {
+    "timestamp": "2024-10-03T18:46:27.987Z",
+    "data": {
+      "timestamp": "2024-09-10T16:18:48.755Z",
+      "data": {
+        "system": {
+          "id": 0,
+          "components": {
+            "valves": [
+              {
+                "id": 1,
+                "name": "Valve 1",
+                "status": false,
+                "location": "zone 1"
+              },
+              {
+                "id": 2,
+                "name": "Valve 2",
+                "status": false,
+                "location": "zone 2"
+              },
+              {
+                "id": 3,
+                "name": "Valve 3",
+                "status": false,
+                "location": "zone 3"
+              }
+            ],
+            "pump": {
+              "id": 1,
+              "name": "Water Pump",
+              "status": false
+            },
+            "sensors": {
+              "soilMoistureSensors": [
+                {
+                  "id": 1,
+                  "name": "Soil Moisture Sensor 1",
+                  "value": 30,
+                  "unit": "%",
+                  "location": "zone 1"
+                },
+                {
+                  "id": 2,
+                  "name": "Soil Moisture Sensor 2",
+                  "value": 28.5,
+                  "unit": "%",
+                  "location": "zone 2"
+                }
+              ],
+              "temperatureSensor": {
+                "id": 1,
+                "name": "Temperature Sensor",
+                "value": 22,
+                "unit": "°C"
+              },
+              "waterLevelSensor": {
+                "id": 1,
+                "name": "Water Level Sensor",
+                "value": 75,
+                "unit": "%",
+                "location": "tank"
+              },
+              "airHumiditySensor": {
+                "id": 1,
+                "name": "Air Humidity Sensor",
+                "value": 60,
+                "unit": "%"
+              }
+            }
+          },
+          "timestamp": "2024-09-10T12:00:00Z"
+        }
       }
     }
   }
