@@ -3,12 +3,15 @@
 #include <WiFi.h>
 #include <WiFiMulti.h>
 #include <WiFiClientSecure.h>
+#include "esp_task_wdt.h"
 
 #include <ArduinoJson.h>
-
-//#include <WebSocketsClient.h>
 #include <SocketIOclient.h>
+#include "DHT.h"
 
+#define DHTPIN 5
+#define DHTTYPE DHT11 
+DHT dht(DHTPIN, DHTTYPE);
 
 WiFiMulti WiFiMulti;
 SocketIOclient socketIO;
@@ -19,7 +22,7 @@ SocketIOclient socketIO;
 // Variables will change:
 int lastState = LOW;  // the previous state from the input pin
 int currentState; 
-
+bool isSendedMasterEmit = false;
 #define USE_SERIAL Serial
 
 const char* jsonString = R"({
@@ -110,7 +113,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             USE_SERIAL.printf("[IOc] Connected to url: %s\n", payload);
             // join default namespace (no auto join in Socket.IO V3)
             socketIO.send(sIOtype_CONNECT, "/");
- //           socketIO.sendEVENT("status", "Hello from ESP32!");
+            sendEmit("master");
             break;
         case sIOtype_EVENT:
         {
@@ -137,12 +140,12 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             //   break;
             // }
 
-            if(eventName == "pump"){
-              if(mode == "on"){
+            if(eventName == "pumpBtn"){
+              if(mode == "ON"){
                 digitalWrite(4, HIGH);
                 USE_SERIAL.printf("pump high");
               }
-              else if(mode == "off"){
+              else if(mode == "OFF"){
                 digitalWrite(4, LOW);
                 USE_SERIAL.printf("pump low");
               }
@@ -241,7 +244,6 @@ void setup() {
     USE_SERIAL.println();
     USE_SERIAL.println();
 
-  //  pinMode(PUMP_IN, OUTPUT);
     pinMode(4, OUTPUT);
     pinMode(LED,OUTPUT);
     pinMode(BUTTON_PIN, INPUT_PULLUP);
@@ -270,11 +272,31 @@ void setup() {
     // event handler
     socketIO.onEvent(socketIOEvent);
 
-    sendEmit("master");
+    //sendEmit("master");
+    dht.begin();
+    delay(2000);
 }
+
+void  readDhtSensor() {
+    float h = dht.readHumidity();
+    float t = dht.readTemperature();
+    
+    if (isnan(h) || isnan(t)) {
+        Serial.println("Failed to read from DHT sensor!");
+    } else {
+        Serial.print("Humidity: ");
+        Serial.println(h);
+        Serial.print("Temperature: ");
+        Serial.println(t);
+    }
+    //delay(2000);
+}
+
 
 void loop() {
   socketIO.loop();// read the state of the switch/button:
+  unsigned long time = millis();
+
   currentState = digitalRead(BUTTON_PIN);
   if (lastState == HIGH && currentState == LOW){
     sendEmitJson("kefteme");

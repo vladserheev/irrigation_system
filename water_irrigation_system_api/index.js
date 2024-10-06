@@ -1,4 +1,5 @@
 const express = require('express');
+const path  = require("path");
 const { createServer } = require('node:http');
 const { join } = require('node:path');
 const { Server } = require('socket.io');
@@ -7,34 +8,41 @@ const { pushStatisticsToDB, updateCurrentStateOnClientSide, prepareDataFromEspFo
 const app = express();
 const server = createServer(app);
 const io = new Server(server);
+const cors = require('cors');
 
 const PORT = 8080;
 
 let masterID='';
-
+let isConnectedToMaster = false;
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(cors());
+//app.use(express.static(path.join(__dirname, "js")));
 app.use((req, res, next) => {
     log("INFO", `Received ${req.method} request for ${req.url}`);
     next();
 });
 app.get('/', (req, res) => {
-    res.sendFile(join(__dirname, 'src/index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html')); // Change 'src' to 'public'
 });
 
-io.on('connection', (socket) => {
-    
-    socket.on('pump', (arg, callback) => {
-        log("INFO","pump " + arg);
 
-        socket.to(masterID).emit('pump', arg);
+io.on('connection', (socket) => {
+
+    socket.on('btnAction', (arg, callback) => {
+        log("INFO",arg.btnName + " " + arg.action);
+        socket.to(masterID).emit(arg.btnName, arg.action);
     })
 
     socket.on('master', (arg, callback) => {
-        log("INFO", "master connected");
+        log("INFO", "Master connected with ID: " + socket.id);
+        socket.to("clients").emit("isConnectedToMaster", true);
         masterID = socket.id;
+        isConnectedToMaster = true;
     })
     socket.on('client', (arg, callback) => {
-        log("INFO", "client connected");
+        log("INFO", "client connected with ID: " + socket.id);
         socket.join('clients');
     })
 
@@ -52,12 +60,29 @@ io.on('connection', (socket) => {
         }
     })
 
+    socket.on('checkIfConnectedToMaster', (arg, callback) => {
+        log('INFO', "Checking if client connected to master...");
+        if (typeof callback === 'function') {
+            callback(isConnectedToMaster);  // Responds with the master connection status
+        } else {
+            log('ERROR', "Callback is not a function!");
+        }
+    });
+
     socket.on('sendCurrentState', (arg,callback) => {
         log("INFO", "Getted corrunt state!");
         socket.emit('sendCurrentState', arg);
     })
     socket.on('disconnect', () => {
-        console.log('user disconnected');
+        log("INFO", `Socket disconnected: ${socket.id}`);
+        if(socket.id === masterID){
+            masterID = 0;
+            isConnectedToMaster = false;
+            socket.to("clients").emit("isConnectedToMaster", false);
+            log("INFO", 'master disconnected');
+        }else{
+            log("INFO", 'client disconnected');
+        }
     });
 });
 
@@ -69,6 +94,15 @@ app.post('/api/sendCurrentState', (req, res) => {
     };
     //pushStatisticsToDB(body, newEntry, res);
     updateCurrentStateOnClientSide()
+});
+
+app.post('/api/manualSettingsForm', (req, res) => {
+    const body = req.body;
+
+    log("INFO", "Got manual Settings Form");
+    log("INFO", body);
+    if(body)
+        res.send(200, body);
 });
 
 app.post('/api/sendCurrentStateToStatistics', (req, res) => {

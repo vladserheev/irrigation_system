@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Control the system</title>
+    <style>
+        /* Add styles for the navbar */
+        nav {
+            margin: 20px 0;
+        }
+
+        /*nav button {*/
+        /*    padding: 10px 15px;*/
+        /*    margin-right: 10px;*/
+        /*    cursor: pointer;*/
+        /*    border: none;*/
+        /*    background-color: #66666b;*/
+        /*    color: white;*/
+        /*    border-radius: 5px;*/
+        /*    font-size: 14px;*/
+        /*}*/
+
+        nav button.active {
+            background-color: #cccccc; /* Darker blue for active tab */
+        }
+
+        .status, #settingsForm {
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            width: 35%; /* Set a width for the container */
+            margin: 20px; /* Add some margin for aesthetics */
+            display: none; /* Initially hide all sections */
+        }
+
+        .status p {
+            display: flex; /* Use flexbox to align items in a row */
+            justify-content: space-between; /* Space between label and button */
+            align-items: center; /* Center the items vertically */
+            margin: 10px 0; /* Space between each item */
+        }
+
+        .toggledButton {
+            padding: 5px 10px; /* Button padding */
+            font-size: 12px; /* Button font size */
+            cursor: pointer; /* Change cursor on hover */
+        }
+
+        .zone {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="number"] {
+            width: calc(100% - 10px);
+            padding: 5px;
+            margin-bottom: 15px;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .status, #settingsForm {
+                width: 80%;
+            }
+        }
+    </style>
+</head>
+<body>
+<h2>Control the system</h2>
+<p>Connection to ESP: <span id="connectionToMaster-status"></span></p>
+
+<!-- Navigation Bar -->
+<nav>
+    <button class="nav-button" data-target="#directControl">Direct Control</button>
+    <button class="nav-button" data-target="#CurrentState">Current State</button>
+    <button class="nav-button" data-target="#manualSettings">Manual Settings</button>
+</nav>
+
+<!-- Direct Control Section -->
+<div id="directControl" class="status">
+    <h3>Direct control</h3>
+    <p>Pump <span><button class="toggledButton" id="pumpBtn">ON</button></span></p>
+    <p>Valve main <span><button class="toggledButton" id="mainValveBtn">ON</button></span></p>
+    <p>Valve zone 1 <span><button class="toggledButton" id="valve1Btn">ON</button></span></p>
+    <p>Valve zone 2 <span><button class="toggledButton" id="valve2Btn">ON</button></span></p>
+    <p>Power <span><button class="toggledButton" id="powerBtn">ON</button></span></p>
+</div>
+
+<!-- Valves Status Section -->
+<div id="CurrentState" class="status">
+    <h3>Valves Status</h3>
+    <p><strong>Pump Status:</strong> <span id="pump-status">Unknown</span></p>
+    <p><strong>Valve 1:</strong> <span id="valve1-status">Unknown</span></p>
+    <p><strong>Valve 2:</strong> <span id="valve2-status">Unknown</span></p>
+    <p><strong>Valve 3:</strong> <span id="valve3-status">Unknown</span></p>
+
+    <h3>Sensor Data</h3>
+    <p><strong>Soil Moisture Sensor 1:</strong> <span id="soilMoisture1">Unknown</span></p>
+    <p><strong>Soil Moisture Sensor 2:</strong> <span id="soilMoisture2">Unknown</span></p>
+    <p><strong>Temperature Sensor:</strong> <span id="temperature">Unknown</span></p>
+    <p><strong>Water Level Sensor:</strong> <span id="waterLevel">Unknown</span></p>
+    <p><strong>Air Humidity Sensor:</strong> <span id="airHumidity">Unknown</span></p>
+</div>
+
+<!-- Manual Settings Section -->
+<div id="manualSettings" class="status">
+    <h3>Manual Settings</h3>
+    <form id="manualSettingsForm">
+        <div class="zone">
+            <h4>Zone 1</h4>
+            <label>Temperature Range (°C):</label>
+            <div class="value-display">
+                Min: <span class="value" data-display="temp1MinValue">10</span>°C
+                <input type="range" name="temp1Min" class="range-input" data-display="temp1MinValue" min="0" max="40" value="10" required>
+            </div>
+            <div class="value-display">
+                Max: <span class="value" data-display="temp1MaxValue">30</span>°C
+                <input type="range" name="temp1Max" class="range-input" data-display="temp1MaxValue" min="0" max="40" value="30" required>
+            </div>
+            <label>Air Humidity (%):</label>
+            <div class="value-display">
+                Min: <span class="value" data-display="humidityAir1MinValue">30</span>%
+                <input type="range" name="humidityAir1Min" class="range-input" data-display="humidityAir1MinValue" min="0" max="100" value="30" required>
+            </div>
+            <div class="value-display">
+                Max: <span class="value" data-display="humidityAir1MaxValue">60</span>%
+                <input type="range" name="humidityAir1Max" class="range-input" data-display="humidityAir1MaxValue" min="0" max="100" value="60" required>
+            </div>
+            <label>Ground Humidity (%):</label>
+            <div class="value-display">
+                Min: <span class="value" data-display="humidityEarth1MinValue">20</span>%
+                <input type="range" name="humidityGround1Min" class="range-input" data-display="humidityEarth1MinValue" min="0" max="100" value="20" required>
+            </div>
+            <div class="value-display">
+                Max: <span class="value" data-display="humidityEarth1MaxValue">50</span>%
+                <input type="range" name="humidityGround1Max" class="range-input" data-display="humidityEarth1MaxValue" min="0" max="100" value="50" required>
+            </div>
+        </div>
+        <input type="submit" value="Send">
+    </form>
+</div>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+<script src="index.js"></script>
+</body>
+</html>
