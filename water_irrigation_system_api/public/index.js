@@ -103,17 +103,50 @@ $(document).ready(function() {
         console.log("form submitted");
         event.preventDefault(); // Prevent the default form submission
         var data = $(event.currentTarget).serialize(); // Serialize the form data
-
-        $.ajax({
-            type: "POST",
-            url: "/api/manualSettingsForm", // Ensure the URL is correct
-            data: data,
-            success: function(response) {
-                console.log("Response from server:", response); // Handle success
-            },
-            error: function(xhr, status, error) {
-                console.error("AJAX Error:", status, error); // Handle error
-            }
-        });
+        if(manualSettingsFormValidate(data)) {
+            $.ajax({
+                type: "POST",
+                url: "/api/manualSettingsForm", // Ensure the URL is correct
+                data: data,
+                success: function (response) {
+                    console.log("Response from server:", response); // Handle success
+                },
+                error: function (xhr, status, error) {
+                    console.error("AJAX Error:", status, error); // Handle error
+                }
+            });
+        }
     });
+
+    $("#timeSettingsForm").submit((event) => {
+        console.log("form submitted");
+        event.preventDefault(); // Prevent the default form submission
+        var data = $(event.currentTarget).serialize(); // Serialize the form data
+        if(timeSettingsFormValidate(data)) {
+            $.ajax({
+                type: "POST",
+                url: "/api/timeSettingsForm", // Ensure the URL is correct
+                data: data,
+                success: function (response) {
+                    console.log("Response from server:", response); // Handle success
+                },
+                error: function (xhr, status, error) {
+                    console.error("AJAX Error:", status, error); // Handle error
+                }
+            });
+        }
+        else{
+            console.error("Form Validation error");
+        }
+    });
+
 });
+
+const timeSettingsFormValidate = (data) => {
+    // write validation code //
+    return true;
+}
+const manualSettingsFormValidate = (data) => {
+    // write validation code //
+    return true;
+}

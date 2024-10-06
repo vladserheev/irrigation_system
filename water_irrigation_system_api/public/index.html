@@ -11,22 +11,11 @@
             margin: 20px 0;
         }
 
-        /*nav button {*/
-        /*    padding: 10px 15px;*/
-        /*    margin-right: 10px;*/
-        /*    cursor: pointer;*/
-        /*    border: none;*/
-        /*    background-color: #66666b;*/
-        /*    color: white;*/
-        /*    border-radius: 5px;*/
-        /*    font-size: 14px;*/
-        /*}*/
-
         nav button.active {
             background-color: #cccccc; /* Darker blue for active tab */
         }
 
-        .status, #settingsForm {
+        .status {
             padding: 10px;
             border: 1px solid #ccc;
             margin-bottom: 10px;
@@ -35,14 +24,14 @@
             display: none; /* Initially hide all sections */
         }
 
-        .status p {
+        .status p, .input-field{
             display: flex; /* Use flexbox to align items in a row */
             justify-content: space-between; /* Space between label and button */
             align-items: center; /* Center the items vertically */
             margin: 10px 0; /* Space between each item */
         }
 
-        .toggledButton {
+        .toggledButton{
             padding: 5px 10px; /* Button padding */
             font-size: 12px; /* Button font size */
             cursor: pointer; /* Change cursor on hover */
@@ -55,7 +44,6 @@
         label {
             display: block;
             margin-bottom: 5px;
-            font-weight: bold;
         }
 
         input[type="number"] {
@@ -63,6 +51,38 @@
             padding: 5px;
             margin-bottom: 15px;
         }
+
+        .input-field {
+            margin-left: 1em;
+            margin-bottom: .5em;
+        }
+
+        /* Flexbox for column layout */
+        .toggledButton {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 10px; /* Space between the time inputs */
+        }
+
+        label {
+            margin-bottom: 5px; /* Space between label and input */
+        }
+
+        /* Optional: Center-align text */
+        form h3 {
+            text-align: left; /* Change to center if you prefer */
+            margin-bottom: 10px;
+        }
+
+        form button {
+            cursor: pointer;
+        }
+
+        #status {
+            margin-top: 20px;
+            color: green; /* Optional: Color for success messages */
+        }
+
 
         @media only screen and (max-width: 600px) {
             .status, #settingsForm {
@@ -80,6 +100,7 @@
     <button class="nav-button" data-target="#directControl">Direct Control</button>
     <button class="nav-button" data-target="#CurrentState">Current State</button>
     <button class="nav-button" data-target="#manualSettings">Manual Settings</button>
+    <button class="nav-button" data-target="#timeSettings">Settings by time</button>
 </nav>
 
 <!-- Direct Control Section -->
@@ -95,18 +116,19 @@
 <!-- Valves Status Section -->
 <div id="CurrentState" class="status">
     <h3>Valves Status</h3>
-    <p><strong>Pump Status:</strong> <span id="pump-status">Unknown</span></p>
-    <p><strong>Valve 1:</strong> <span id="valve1-status">Unknown</span></p>
-    <p><strong>Valve 2:</strong> <span id="valve2-status">Unknown</span></p>
-    <p><strong>Valve 3:</strong> <span id="valve3-status">Unknown</span></p>
+    <p>Pump Status: <span id="pump-status">Unknown</span></p>
+    <p>Valve 1: <span id="valve1-status">Unknown</span></p>
+    <p>Valve 2: <span id="valve2-status">Unknown</span></p>
+    <p>Valve 3: <span id="valve3-status">Unknown</span></p>
 
     <h3>Sensor Data</h3>
-    <p><strong>Soil Moisture Sensor 1:</strong> <span id="soilMoisture1">Unknown</span></p>
-    <p><strong>Soil Moisture Sensor 2:</strong> <span id="soilMoisture2">Unknown</span></p>
-    <p><strong>Temperature Sensor:</strong> <span id="temperature">Unknown</span></p>
-    <p><strong>Water Level Sensor:</strong> <span id="waterLevel">Unknown</span></p>
-    <p><strong>Air Humidity Sensor:</strong> <span id="airHumidity">Unknown</span></p>
+    <p>Soil Moisture Sensor 1: <span id="soilMoisture1">Unknown</span></p>
+    <p>Soil Moisture Sensor 2: <span id="soilMoisture2">Unknown</span></p>
+    <p>Temperature Sensor: <span id="temperature">Unknown</span></p>
+    <p>Water Level Sensor: <span id="waterLevel">Unknown</span></p>
+    <p>Air Humidity Sensor: <span id="airHumidity">Unknown</span></p>
 </div>
+
 
 <!-- Manual Settings Section -->
 <div id="manualSettings" class="status">
@@ -114,36 +136,58 @@
     <form id="manualSettingsForm">
         <div class="zone">
             <h4>Zone 1</h4>
-            <label>Temperature Range (°C):</label>
-            <div class="value-display">
-                Min: <span class="value" data-display="temp1MinValue">10</span>°C
-                <input type="range" name="temp1Min" class="range-input" data-display="temp1MinValue" min="0" max="40" value="10" required>
-            </div>
-            <div class="value-display">
-                Max: <span class="value" data-display="temp1MaxValue">30</span>°C
-                <input type="range" name="temp1Max" class="range-input" data-display="temp1MaxValue" min="0" max="40" value="30" required>
-            </div>
-            <label>Air Humidity (%):</label>
-            <div class="value-display">
-                Min: <span class="value" data-display="humidityAir1MinValue">30</span>%
-                <input type="range" name="humidityAir1Min" class="range-input" data-display="humidityAir1MinValue" min="0" max="100" value="30" required>
-            </div>
-            <div class="value-display">
-                Max: <span class="value" data-display="humidityAir1MaxValue">60</span>%
-                <input type="range" name="humidityAir1Max" class="range-input" data-display="humidityAir1MaxValue" min="0" max="100" value="60" required>
-            </div>
-            <label>Ground Humidity (%):</label>
-            <div class="value-display">
-                Min: <span class="value" data-display="humidityEarth1MinValue">20</span>%
-                <input type="range" name="humidityGround1Min" class="range-input" data-display="humidityEarth1MinValue" min="0" max="100" value="20" required>
-            </div>
-            <div class="value-display">
-                Max: <span class="value" data-display="humidityEarth1MaxValue">50</span>%
-                <input type="range" name="humidityGround1Max" class="range-input" data-display="humidityEarth1MaxValue" min="0" max="100" value="50" required>
-            </div>
+            <p>Temperature Range (°C):</p>
+            <p>
+                <span>Min: <span class="value" data-display="temp1MinValue">10</span>°C</span>
+                <span><input type="range" name="temp1Min" class="range-input" data-display="temp1MinValue" min="0" max="40" value="10" required></span>
+            </p>
+            <p>
+                <span>Max: <span class="value" data-display="temp1MaxValue">30</span>°C</span>
+                <span><input type="range" name="temp1Max" class="range-input" data-display="temp1MaxValue" min="0" max="40" value="30" required></span>
+            </p>
+            <p>Air Humidity (%):</p>
+            <p>
+                <span>Min: <span class="value" data-display="humidityAir1MinValue">30</span>%</span>
+                <span><input type="range" name="humidityAir1Min" class="range-input" data-display="humidityAir1MinValue" min="0" max="100" value="30" required></span>
+            </p>
+            <p>
+                <span>Max: <span class="value" data-display="humidityAir1MaxValue">60</span>%</span>
+                <span><input type="range" name="humidityAir1Max" class="range-input" data-display="humidityAir1MaxValue" min="0" max="100" value="60" required></span>
+            </p>
+            <p>Ground Humidity (%):</p>
+            <p>
+                <span>Min: <span class="value" data-display="humidityEarth1MinValue">20</span>%</span>
+                <span><input type="range" name="humidityGround1Min" class="range-input" data-display="humidityEarth1MinValue" min="0" max="100" value="20" required></span>
+            </p>
+            <p>
+                <span>Max: <span class="value" data-display="humidityEarth1MaxValue">50</span>%</span>
+                <span><input type="range" name="humidityGround1Max" class="range-input" data-display="humidityEarth1MaxValue" min="0" max="100" value="50" required></span>
+            </p>
         </div>
         <input type="submit" value="Send">
     </form>
+</div>
+<div id="timeSettings" class="status">
+    <h3>Zone Settings by time</h3>
+        <form id="timeSettingsForm">
+            <!-- Zone 1 -->
+            <div class="zone" id="zone-1">
+                <h4>Zone 1</h4>
+                <p><label for="zone1-start">Start Time:</label> <span> <input type="time" class="input-field" id="zone1-start" value="07:30" name="zone1Start" required></span></p>
+                <p><label for="zone1-end">End Time:</label> <span> <input type="time" class="input-field" id="zone1-end" value="20:30" name="zone1End" required></span></p>
+            </div>
+
+            <!-- Zone 2 -->
+            <div class="zone" id="zone-2">
+                <h4>Zone 2</h4>
+                <p><label for="zone2-start">Start Time:</label> <span> <input type="time" class="input-field" id="zone2-start" value="10:00" name="zone2Start" required></span></p>
+                <p><label for="zone2-end">End Time:</label> <span> <input type="time" class="input-field" id="zone2-end" value="21:00" name="zone2End" required></span></p>
+            </div>
+
+            <button type="submit">Send</button>
+        </form>
+
+    <div id="status"></div>
 </div>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
 <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>

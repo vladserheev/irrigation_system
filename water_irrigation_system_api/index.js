@@ -14,11 +14,11 @@ const PORT = 8080;
 
 let masterID='';
 let isConnectedToMaster = false;
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors());
-//app.use(express.static(path.join(__dirname, "js")));
 app.use((req, res, next) => {
     log("INFO", `Received ${req.method} request for ${req.url}`);
     next();
@@ -27,12 +27,11 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html')); // Change 'src' to 'public'
 });
 
-
 io.on('connection', (socket) => {
 
     socket.on('btnAction', (arg, callback) => {
         log("INFO",arg.btnName + " " + arg.action);
-        socket.to(masterID).emit(arg.btnName, arg.action);
+        socket.to(masterID).emit("btnAction", {btnName: arg.btnName, btnVal: arg.action});
     })
 
     socket.on('master', (arg, callback) => {
@@ -92,17 +91,45 @@ app.post('/api/sendCurrentState', (req, res) => {
         timestamp: new Date().toISOString(),
         data: body
     };
-    //pushStatisticsToDB(body, newEntry, res);
     updateCurrentStateOnClientSide()
 });
 
 app.post('/api/manualSettingsForm', (req, res) => {
     const body = req.body;
-
     log("INFO", "Got manual Settings Form");
     log("INFO", body);
-    if(body)
-        res.send(200, body);
+
+    if (masterID) {
+        io.to(masterID).emit("manualSettings", body);
+    } else {
+        log("ERROR", "Master is not connected, unable to send manual settings.");
+        return res.status(500).send({ error: "Master is not connected." });
+    }
+
+    if (body) {
+        res.status(200).send(body);  // Respond with success
+    } else {
+        res.status(400).send({ error: "Invalid data." });  // Handle invalid request body
+    }
+});
+
+app.post('/api/timeSettingsForm', (req, res) => {
+    const body = req.body;
+    log("INFO", "Got Time Settings Form");
+    log("INFO", body);
+
+    if (masterID) {
+        io.to(masterID).emit("timeSettings", body);  // Emit to the master by socket ID
+    } else {
+        log("ERROR", "Master is not connected, unable to send manual settings.");
+        return res.status(500).send({ error: "Master is not connected." });
+    }
+
+    if (body) {
+        res.status(200).send(body);
+    } else {
+        res.status(400).send({ error: "Invalid data." });
+    }
 });
 
 app.post('/api/sendCurrentStateToStatistics', (req, res) => {
