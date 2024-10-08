@@ -1,152 +1,146 @@
-$(document).ready(function() {
+$(document).ready(function () {
     // Initially show the Direct Control section
     $('#directControl').show();
     $('.status').not('#directControl').hide();
 
     // Add click event to navigation buttons
-    $('.nav-button').on('click', function() {
-        // Remove active class from all buttons and hide all sections
+    $('.nav-button').on('click', function () {
         $('.nav-button').removeClass('active');
         $('.status').hide();
-
-        // Add active class to the clicked button and show the corresponding section
         $(this).addClass('active');
         const target = $(this).data('target');
         $(target).show();
     });
-});
-$(document).ready(function() {
 
-    // Function to update the display value
-    function updateDisplay($element, value) {
-        $element.text(value);
-    }
-
-    // Attach input event to all range inputs
-    $('.range-input').on('input', function() {
-        const displayId = $(this).data('display'); // Get the display ID from data attribute
-        const displayValue = $(`span[data-display="${displayId}"]`); // Find the corresponding display element
-        updateDisplay(displayValue, $(this).val()); // Update the display
+    // Update display values for range inputs
+    $('.range-input').on('input', function () {
+        const displayId = $(this).data('display');
+        const displayValue = $(`span[data-display="${displayId}"]`);
+        displayValue.text($(this).val());
     });
 
-
-});
-
-const buttons = document.querySelectorAll('.toggledButton');
-
-const manualSettingsFormSubmit = (form) => {
-    console.log(form);
-};
-
-// Add event listener to each button
-buttons.forEach(button => {
-    button.addEventListener('click', function() {
-        // Toggle button text between "ON" and "OFF"
-        socket.emit("btnAction", {btnName: button.id, action: button.textContent});
-        if (button.textContent === 'ON') {
-            button.textContent = 'OFF';
-        } else {
-            button.textContent = 'ON';
-        }
+    // Socket connection setup
+    const socket = io();
+    socket.on("connect", () => {
+        console.log("Connected to the server!");
+        socket.emit("client", true); // Notify server of client connection
+        socket.emit('checkIfConnectedToMaster', null, (status) => {
+            console.log('Master connection status:', status);
+            $('#connectionToMaster-status').text(status ? 'TRUE' : 'FALSE');
+        });
     });
-});
 
-const socket = io();
-// Listen for connection event
-socket.on("connect", () => {
-    console.log("Connected to the server!");
-    socket.emit("client", true);
-    socket.emit('checkIfConnectedToMaster', null, (status) => {
-        // This callback handles the server's response
-        console.log('Received status from server:', status);  // Log the received status
-        document.getElementById('connectionToMaster-status').textContent = status ? 'TRUE' : 'FALSE';
+    // Listen for system state updates
+    socket.on('sendCurrentState', (data) => {
+        console.log('Received initial system data:', data);
+        updateUI(data);
     });
-});
 
-// Listen for the current state
-socket.on('sendCurrentState', (data) => {
-    console.log('Received initial system data:', data);
-    updateUI(data);  // Update the UI when the data is first received
-});
+    socket.on('updateCurrentStateOnClientSide', (set) => {
+        console.log('Received updated system data:', set);
+        updateUI(set);
+    });
 
-// Listen for updates to the system's state
-socket.on('updateCurrentStateOnClientSide', (set) => {
-    console.log('Received updated system data:', set);
-    updateUI(set);  // Update the UI when the system state is updated
-});
+    socket.on("isConnectedToMaster", (status) => {
+        console.log('Master connection status:', status);
+        $('#connectionToMaster-status').text(status ? 'TRUE' : 'FALSE');
+    });
 
-socket.on("isConnectedToMaster", (status) => {
-    console.log('Received status from server:', status);  // Log the received status
-    document.getElementById('connectionToMaster-status').textContent = status ? 'TRUE' : 'FALSE';
-})
+    // Handle disconnection
+    socket.on('disconnect', () => {
+        console.log('Disconnected from the server');
+        $('#connectionToMaster-status').text('DISCONNECTED');
+    });
 
-// Function to update the UI with the current state of the system
-function updateUI(data) {
-    // Update pump status
-    document.getElementById('pump-status').textContent = data.pump ? 'ON' : 'OFF';
+    // Toggle buttons (ON/OFF)
+    $('.toggledButton').each(function () {
+        $(this).on('click', function () {
+            const action = $(this).text() === 'ON' ? 'OFF' : 'ON';
+            socket.emit("btnAction", { btnName: this.id, action });
+            $(this).text(action);
+        });
+    });
 
-    // Update valves status
-    document.getElementById('valve1-status').textContent = data.valve1 ? 'Open' : 'Closed';
-    document.getElementById('valve2-status').textContent = data.valve2 ? 'Open' : 'Closed';
-    document.getElementById('valve3-status').textContent = data.valve3 ? 'Open' : 'Closed';
-
-    // Update sensor values
-    document.getElementById('soilMoisture1').textContent = `${data.soilMoistureSensor1.value} ${data.soilMoistureSensor1.unit}`;
-    document.getElementById('soilMoisture2').textContent = `${data.soilMoistureSensor2.value} ${data.soilMoistureSensor2.unit}`;
-    document.getElementById('temperature').textContent = `${data.temperatureSensor.value} ${data.temperatureSensor.unit}`;
-    document.getElementById('waterLevel').textContent = `${data.waterLevelSensor.value} ${data.waterLevelSensor.unit}`;
-    document.getElementById('airHumidity').textContent = `${data.airHumiditySensor.value} ${data.airHumiditySensor.unit}`;
-}
-
-$(document).ready(function() {
+    // Handle form submissions
     $("#manualSettingsForm").submit((event) => {
-        console.log("form submitted");
-        event.preventDefault(); // Prevent the default form submission
-        var data = $(event.currentTarget).serialize(); // Serialize the form data
-        if(manualSettingsFormValidate(data)) {
+        event.preventDefault();
+        const data = $(event.currentTarget).serialize();
+        if (manualSettingsFormValidate(data)) {
             $.ajax({
                 type: "POST",
-                url: "/api/manualSettingsForm", // Ensure the URL is correct
+                url: "/api/manualSettingsForm",
                 data: data,
-                success: function (response) {
-                    console.log("Response from server:", response); // Handle success
-                },
-                error: function (xhr, status, error) {
-                    console.error("AJAX Error:", status, error); // Handle error
-                }
+                success: (response) => console.log("Server response:", response),
+                error: (xhr, status, error) => alert(`Error: ${status} - ${error}`)
             });
         }
     });
 
     $("#timeSettingsForm").submit((event) => {
-        console.log("form submitted");
-        event.preventDefault(); // Prevent the default form submission
-        var data = $(event.currentTarget).serialize(); // Serialize the form data
-        if(timeSettingsFormValidate(data)) {
+        event.preventDefault();
+        const data = $(event.currentTarget).serialize();
+        if (timeSettingsFormValidate(data)) {
             $.ajax({
                 type: "POST",
-                url: "/api/timeSettingsForm", // Ensure the URL is correct
+                url: "/api/timeSettingsForm",
                 data: data,
-                success: function (response) {
-                    console.log("Response from server:", response); // Handle success
-                },
-                error: function (xhr, status, error) {
-                    console.error("AJAX Error:", status, error); // Handle error
-                }
+                success: (response) => console.log("Server response:", response),
+                error: (xhr, status, error) => alert(`Error: ${status} - ${error}`)
             });
         }
-        else{
-            console.error("Form Validation error");
-        }
     });
-
 });
 
+// Validate forms (expand these as needed)
 const timeSettingsFormValidate = (data) => {
-    // write validation code //
+    // Add specific validation logic
     return true;
-}
+};
+
 const manualSettingsFormValidate = (data) => {
-    // write validation code //
+    // Add specific validation logic
     return true;
+};
+
+// Function to update the UI based on the system state
+function updateUI(data) {
+    const pump = data.System.Components.Pump;
+    const valves = data.System.Components.Valves;
+    const sensors = data.System.Sensors;
+
+    // Update mode
+    $("#currentMode").text(data.System.Mode);
+
+    // Clear existing component and sensor elements
+    $(".components").empty();
+    $(".sensors").empty();
+
+    // Update pump status
+    $(".components").append(`<p>${pump.name} Status: <span>${pump.status ? 'ON' : 'OFF'}</span></p>`);
+
+    // Update the toggled button for the pump (assuming button ID matches the pump name or another identifier)
+    const pumpButton = $(`#${pump.name}`);  // Assuming pump button has an id matching its name
+    console.log(pumpButton);
+    if (pumpButton.length) {
+        pumpButton.text(pump.status ? 'ON' : 'OFF');  // Set text based on status
+    }
+
+    // Update valves status
+    valves.forEach((valve) => {
+        $(".components").append(`<p>${valve.name} Status: <span>${valve.status ? 'ON' : 'OFF'}</span></p>`);
+
+        // Update the toggled button for the valve
+        const valveButton = $(`#${valve.name}`);
+        console.log(valve.name);
+        console.log(valveButton);// Assuming each valve has an associated button with an id matching the valve name
+        if (valveButton.length) {
+            valveButton.text(valve.status ? 'ON' : 'OFF');  // Set text based on status
+        }
+    });
+    console.log($('#Valve_3'));
+    // Update sensors
+    sensors.forEach((sensor) => {
+        $(".sensors").append(`<p>${sensor.name}: <span>${sensor.value} ${sensor.unit}</span></p>`);
+    });
 }
+

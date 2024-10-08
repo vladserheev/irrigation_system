@@ -12,7 +12,7 @@ const cors = require('cors');
 
 const PORT = 8080;
 
-let masterID='';
+let masterID = '';
 let isConnectedToMaster = false;
 
 app.use(express.json());
@@ -28,59 +28,70 @@ app.get('/', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-
     socket.on('btnAction', (arg, callback) => {
-        log("INFO",arg.btnName + " " + arg.action);
-        socket.to(masterID).emit("btnAction", {btnName: arg.btnName, btnVal: arg.action});
-    })
+        log("INFO", arg.btnName + " " + arg.action);
+        if (masterID) {
+            socket.to(masterID).emit("btnAction", { btnName: arg.btnName, btnVal: arg.action });
+        } else {
+            log("ERROR", "Master not connected, cannot send button action");
+            if (typeof callback === 'function') {
+                callback({ error: "Master not connected" });
+            }
+        }
+    });
 
     socket.on('master', (arg, callback) => {
         log("INFO", "Master connected with ID: " + socket.id);
         socket.to("clients").emit("isConnectedToMaster", true);
         masterID = socket.id;
         isConnectedToMaster = true;
-    })
+    });
+
     socket.on('client', (arg, callback) => {
-        log("INFO", "client connected with ID: " + socket.id);
+        log("INFO", "Client connected with ID: " + socket.id);
         socket.join('clients');
-    })
+    });
 
     socket.on('kefteme', (arg, callback) => {
-        log("INFO", "Getted emit with Json from esp");
-        if(arg){
+        log("INFO", "Received emit with JSON from ESP");
+        if (arg && arg.val) {
             try {
-                let data = JSON.parse(arg.val);
-                log("INFO", "Json parsed successfully!")
-                const setOfExtractedValuesFromJson = prepareDataFromEspForClient(data);
-                socket.to('clients').emit('updateCurrentStateOnClientSide', setOfExtractedValuesFromJson);
-            }catch (e){
+                log("INFO", arg.val);
+                socket.to('clients').emit('updateCurrentStateOnClientSide', arg.val);
+            } catch (e) {
                 log("ERROR", e);
             }
         }
-    })
+    });
 
     socket.on('checkIfConnectedToMaster', (arg, callback) => {
-        log('INFO', "Checking if client connected to master...");
+        log('INFO', `Client ${socket.id} checking if connected to master...`);
         if (typeof callback === 'function') {
-            callback(isConnectedToMaster);  // Responds with the master connection status
+            if (isConnectedToMaster) {
+                log('INFO', `Client ${socket.id} connected to master ${masterID}`);
+                callback(true);
+            } else {
+                callback(false);
+            }
         } else {
-            log('ERROR', "Callback is not a function!");
+            log('ERROR', "Callback is not a function for checking master connection!");
         }
     });
 
-    socket.on('sendCurrentState', (arg,callback) => {
-        log("INFO", "Getted corrunt state!");
+    socket.on('sendCurrentState', (arg, callback) => {
+        log("INFO", "Received current state!");
         socket.emit('sendCurrentState', arg);
-    })
+    });
+
     socket.on('disconnect', () => {
         log("INFO", `Socket disconnected: ${socket.id}`);
-        if(socket.id === masterID){
+        if (socket.id === masterID) {
             masterID = 0;
             isConnectedToMaster = false;
             socket.to("clients").emit("isConnectedToMaster", false);
-            log("INFO", 'master disconnected');
-        }else{
-            log("INFO", 'client disconnected');
+            log("INFO", 'Master disconnected');
+        } else {
+            log("INFO", 'Client disconnected');
         }
     });
 });
@@ -91,7 +102,7 @@ app.post('/api/sendCurrentState', (req, res) => {
         timestamp: new Date().toISOString(),
         data: body
     };
-    updateCurrentStateOnClientSide()
+    updateCurrentStateOnClientSide();
 });
 
 app.post('/api/manualSettingsForm', (req, res) => {
@@ -139,9 +150,9 @@ app.post('/api/sendCurrentStateToStatistics', (req, res) => {
         data: body
     };
     pushStatisticsToDB(body, newEntry, res);
-    updateCurrentStateOnClientSide()
+    updateCurrentStateOnClientSide();
 });
 
 server.listen(PORT, () => {
-    log("INFO", `server running at ${PORT}`);
+    log("INFO", `Server running at ${PORT}`);
 });

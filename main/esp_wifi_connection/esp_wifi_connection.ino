@@ -41,93 +41,17 @@ class TimeSettings {
 std::map<String, int>
   pinMap = {
     { "Pump", PUMP },
-    { "Valve 1", VALVE_MAIN },
-    { "Valve 2", VALVE1 },
-    { "Valve 3", VALVE2 },
+    { "Valve_1", VALVE_MAIN },
+    { "Valve_2", VALVE1 },
+    { "Valve_3", VALVE2 },
   };
 
 Mode currentMode;
 String currenttime = "15:40";
 TimeSettings currentTimeSettings;
 
-int lastState = LOW;  // the previous state from the input pin
+int lastState = LOW; 
 int currentState;
-bool isSendedMasterEmit = false;
-
-
-
-const char *jsonString = R"({
-    "timestamp": "2024-10-03T18:40:49.988Z",
-      "data": {
-        "system": {
-          "id": 0,
-          "components": {
-            "valves": [
-              {
-                "id": 1,
-                "name": "Valve 1",
-                "status": false,
-                "location": "zone 1"
-              },
-              {
-                "id": 2,
-                "name": "Valve 2",
-                "status": false,
-                "location": "zone 2"
-              },
-              {
-                "id": 3,
-                "name": "Valve 3",
-                "status": false,
-                "location": "zone 3"
-              }
-            ],
-            "pump": {
-              "id": 1,
-              "name": "Water Pump",
-              "status": false
-            },
-            "sensors": {
-              "soilMoistureSensors": [
-                {
-                  "id": 1,
-                  "name": "Soil Moisture Sensor 1",
-                  "value": 30,
-                  "unit": "%",
-                  "location": "zone 1"
-                },
-                {
-                  "id": 2,
-                  "name": "Soil Moisture Sensor 2",
-                  "value": 28.5,
-                  "unit": "%",
-                  "location": "zone 2"
-                }
-              ],
-              "temperatureSensor": {
-                "id": 1,
-                "name": "Temperature Sensor",
-                "value": 22,
-                "unit": "°C"
-              },
-              "waterLevelSensor": {
-                "id": 1,
-                "name": "Water Level Sensor",
-                "value": 75,
-                "unit": "%",
-                "location": "tank"
-              },
-              "airHumiditySensor": {
-                "id": 1,
-                "name": "Air Humidity Sensor",
-                "value": 60,
-                "unit": "%"
-              }
-            }
-          }
-        }
-    }
-})";
 
 class Valve {
 public:
@@ -145,6 +69,26 @@ public:
     Serial.print("Status: "); Serial.println(status ? "Open" : "Closed");
     Serial.print("Location: "); Serial.println(location.c_str());
     }
+
+    void digitalUpdate(bool statusValve) {
+      if (pinMap.find(name.c_str()) != pinMap.end()) {
+        int pin = pinMap[name.c_str()];
+        ::digitalWrite(pin, statusValve ? HIGH : LOW);
+        status = statusValve;
+        Serial.println(" Valve tatus updated");
+      } else {
+          Serial.println("Pin not found for valve!");
+      }
+    }
+
+    StaticJsonDocument<200> toJson(){
+      StaticJsonDocument<200> jsonString;
+      jsonString["id"] = id;
+      jsonString["name"] = name;
+      jsonString["status"] = status;
+      jsonString["location"] = location;
+      return jsonString;
+    }
 };
 
 class Pump {
@@ -157,9 +101,27 @@ public:
         : id(id), name(name), status(status) {}
 
     void print() {
-    Serial.print("Pump ID: "); Serial.println(id);
-    Serial.print("Name: "); Serial.println(name.c_str());
-    Serial.print("Status: "); Serial.println(status ? "On" : "Off");
+      Serial.print("Pump ID: "); Serial.println(id);
+      Serial.print("Name: "); Serial.println(name.c_str());
+      Serial.print("Status: "); Serial.println(status ? "On" : "Off");
+    }
+    
+    void digitalUpdate(bool statusValve) {
+      if (pinMap.find(name.c_str()) != pinMap.end()) {
+        int pin = pinMap[name.c_str()];
+        ::digitalWrite(pin, statusValve ? HIGH : LOW);
+        status = statusValve;
+        Serial.println("Pump status updated");
+      } else {
+          Serial.println("Pin not found for pump!");
+      }
+    }
+    StaticJsonDocument<200> toJson(){
+      StaticJsonDocument<200> jsonString;
+      jsonString["id"] = id;
+      jsonString["name"] = name;
+      jsonString["status"] = status;
+      return jsonString;
     }
 };
 
@@ -179,6 +141,16 @@ public:
         Serial.print("Name: "); Serial.println(name.c_str());
         Serial.print("Value: "); Serial.print(value); Serial.print(" "); Serial.println(unit.c_str());
         Serial.print("Location: "); Serial.println(location.c_str());
+    }
+
+    StaticJsonDocument<200> toJson(){
+      StaticJsonDocument<200> jsonString;
+      jsonString["id"] = id;
+      jsonString["name"] = name;
+      jsonString["value"] = value;
+      jsonString["unit"] = unit;
+      jsonString["location"] = location;
+      return jsonString;
     }
 };
 
@@ -200,21 +172,27 @@ public:
         Serial.println("--- Pump ---");
         pump.print();
     }
-};
 
-class Sensors {
-public:
-    std::vector<Sensor> sensors;
-
-    Sensors(const std::vector<Sensor>& sensors)
-        : sensors(sensors) {}
-
-    void print() {
-        Serial.println("--- Sensors ---");
-        for (const auto& sensor : sensors) {
-            sensor.print();
-            Serial.println();  // Print newline after each sensor
+    void updateComponentStateByName(std::string componentName, std::string componentStatus){
+      bool componentStatusBool = (componentStatus == "ON");
+      if(componentName == pump.name){
+        pump.digitalUpdate(componentStatusBool);
+      }else{
+        for(Valve& valve : valves){
+          if(valve.name == componentName){
+            valve.digitalUpdate(componentStatusBool);
+          }
         }
+      }
+    }
+    StaticJsonDocument<200> toJson(){
+      StaticJsonDocument<200> jsonString;
+
+      for(Valve valve : valves){
+        jsonString["Valves"].add(valve.toJson());
+      }
+      jsonString["Pump"]=pump.toJson();
+      return jsonString;
     }
 };
 
@@ -222,15 +200,36 @@ class System {
 public:
     int id;
     Components components;
-    Sensors sensors;
+    std::vector<Sensor> sensors;
+    Mode mode;
 
-    System(int id, const Components& components, const Sensors& sensors)
-        : id(id), components(components),sensors(sensors) {}
+    System(int id, const Components& components, const std::vector<Sensor>& sensors, Mode mode)
+        : id(id), components(components),sensors(sensors), mode(mode) {}
 
     void print() {
         Serial.print("System ID: "); Serial.println(id);
         components.print();
-        sensors.print();
+        //sensors.print();
+    }
+
+    String modeToString(Mode mode) {
+      switch (mode) {
+        case MANUAL: return "MANUAL";
+        case DIRECT: return "DIRECT";
+        case TIME: return "TIME";
+        default: return "UNKNOWN";
+      }
+    }
+
+    StaticJsonDocument<200> toJson(){
+      StaticJsonDocument<200> jsonString;
+      jsonString["Components"] = components.toJson();
+      
+      for(Sensor& sensor : sensors){
+        jsonString["Sensors"].add(sensor.toJson());
+      }
+      jsonString["Mode"] = modeToString(mode);
+      return jsonString;
     }
 };
 
@@ -246,35 +245,22 @@ public:
         Serial.print("Timestamp: "); Serial.println(timestamp.c_str());
         system.print();
     }
+
+    StaticJsonDocument<200> toJson(){
+      StaticJsonDocument<200> jsonString;
+      jsonString["System"] = system.toJson();
+      return jsonString;
+    }
 };  
 
-// class CurrentState {
-// public:
-//     bool valve1Status;
-//     bool valve2Status;
-//     bool valve3Status;
-//     bool pumpStatus;
-
-//     CurrentState(bool v1, bool v2, bool v3, bool p)
-//         : valve1Status(v1), valve2Status(v2), valve3Status(v3), pumpStatus(p) {}
-// };
+Root root(System(0, Components(), std::vector<Sensor>(), DIRECT), "");
+Components neededStateComponets;
 
 void handleBtnActionEmit(DynamicJsonDocument doc) {
-  String componentName = doc[1]["btnName"];
-  String btnVal = doc[1]["btnVal"];
-  auto it = pinMap.find(componentName);
-  if (it != pinMap.end()) {
-    int pinNumber = it->second;
-    if (btnVal == "ON") {
-      digitalWrite(pinNumber, HIGH);
-      USE_SERIAL.printf("%s set to HIGH (ON)\n", componentName.c_str());
-    } else if (btnVal == "OFF") {
-      digitalWrite(pinNumber, LOW);
-      USE_SERIAL.printf("%s set to LOW (OFF)\n", componentName.c_str());
-    }
-  } else {
-    USE_SERIAL.printf("Unknown component: %s\n", componentName.c_str());
-  }
+  std::string componentName = doc[1]["btnName"];
+  std::string btnVal = doc[1]["btnVal"];
+  Serial.printf("Handling btn action: %s : %d", componentName, btnVal);
+  root.system.components.updateComponentStateByName(componentName, btnVal);
 }
 
 void timeSetting(DynamicJsonDocument doc) {
@@ -292,15 +278,22 @@ void timeWattering() {
 }
 
 void handlingSocketEvent(String eventName, DynamicJsonDocument doc){
+  Serial.printf("Handling socket event: %s", eventName);
   if (eventName == "btnAction") {
+      root.system.mode = DIRECT;
+      Serial.println("Direct Control!");
       handleBtnActionEmit(doc);
   } else if (eventName == "manualSettings") {
-      Serial.println("Manual Setting");
+      root.system.mode = MANUAL;
+      Serial.println("Manual Setting!");
   } else if (eventName == "timeSettings") {
-      Serial.println("Time Setting");
+      root.system.mode = TIME;
+      Serial.println("Time Setting!");
       timeSetting(doc);
   }
 }
+
+// IO //
 
 void socketIOEvent(socketIOmessageType_t type, uint8_t *payload, size_t length) {
   switch (type) {
@@ -309,9 +302,8 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t *payload, size_t length) 
       break;
     case sIOtype_CONNECT:
       USE_SERIAL.printf("[IOc] Connected to url: %s\n", payload);
-      // join default namespace (no auto join in Socket.IO V3)
       socketIO.send(sIOtype_CONNECT, "/");
-      sendEmit("master");
+      sendEmit("master", "true");
       break;
     case sIOtype_EVENT:
       {
@@ -331,7 +323,6 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t *payload, size_t length) 
 
         String eventName = doc[0];
         
-        serializeJson(doc, Serial);
         handlingSocketEvent(eventName, doc);
 
         USE_SERIAL.printf("[IOc] event name: %s\n", eventName.c_str());
@@ -371,13 +362,13 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t *payload, size_t length) 
   }
 }
 
-void sendEmit(String name) {
+void sendEmit(String name, String val) {
   DynamicJsonDocument doc(1024);
   JsonArray array = doc.to<JsonArray>();
   array.add(name);
 
   JsonObject param1 = array.createNestedObject();
-  param1["val"] = true;
+  param1["val"] = val;
 
   String output;
   serializeJson(doc, output);
@@ -387,48 +378,50 @@ void sendEmit(String name) {
   USE_SERIAL.println(output);
 }
 
-void sendEmitJson(String name) {
+void sendEmitJson(String name, StaticJsonDocument<200> jsonString) {
   DynamicJsonDocument doc(1024);          // Create a JSON document
   JsonArray array = doc.to<JsonArray>();  // Create an array in the document
 
-  // Add event name to the array
+  // // Add event name to the array
   array.add(name);  // Use the 'name' parameter as the event name
 
-  // Create an object to hold parameters
+  // // Create an object to hold parameters
   JsonObject param1 = array.createNestedObject();
   param1["val"] = jsonString;  // Add your JSON string to the parameters
 
-  // Serialize the JSON document to a String
+  // // Serialize the JSON document to a String
   String output;
   serializeJson(doc, output);  // Serialize the document into the output string
 
-  // Send event
+  // // Send event
   socketIO.sendEVENT(output);  // Send the output string through Socket.IO
 
-  // Print JSON for debugging
+  // // Print JSON for debugging
   USE_SERIAL.println(output);
 }
 
+// system initialization //
+
 Root initializeSystemComponents() {
     std::vector<Valve> valves = {
-        Valve(1, "Valve 1", false, "zone 1"),
-        Valve(2, "Valve 2", false, "zone 2"),
-        Valve(3, "Valve 3", false, "zone 3")
+        Valve(1, "Valve_1", false, "zone 1"),
+        Valve(2, "Valve_2", false, "zone 2"),
+        Valve(3, "Valve_3", false, "zone 3")
     };
     Pump pump(1, "Pump", false);
 
     std::vector<Sensor> sensors = {
-        Sensor (1, "Temperature Sensor", 1, "cel", "main"),
-        Sensor (2, "Water Level Sensor", 1, "cel", "main"),
-        Sensor (3, "Air Humidity Sensor", 1, "cel", "main"),
-        Sensor(4, "Soil Humidity Sensor 1", 1, "cel", "main"),
-        Sensor(5, "Soil Humidity Sensor 2", 1, "cel", "main")
+        Sensor (1, "Temperature Sensor", 25, "°", "main"),
+        Sensor (2, "Water Level Sensor", 20, "cm", "main"),
+        Sensor (3, "Air Humidity Sensor", 60, "%", "main"),
+        Sensor(4, "Soil Humidity Sensor 1", 25, "%", "main"),
+        Sensor(5, "Soil Humidity Sensor 2", 35, "%", "main")
     };
 
     Components components(valves, pump);
 
 
-    System system(0, components, sensors);
+    System system(0, components, sensors, DIRECT);
     std::string timestamp = "2024-10-03T18:40:49.988Z";
     Root root(system, timestamp);
 
@@ -440,46 +433,15 @@ Components initializeNeededStateComponents(){
         Valve(1, "Valve 1", false, "zone 1"),
         Valve(2, "Valve 2", false, "zone 2"),
         Valve(3, "Valve 3", false, "zone 3")
+
     };
     Pump pump(1, "Pump", true);
     Components components(valves, pump);
     return components;
 }
 
-void refresPhysicalComponentsAccordingToNeededState(Components neededState, Components currentState){
-    for (const auto& neededValve : neededState.valves) {
-        // Find the current valve corresponding to the needed valve
-        for (const auto& currentValve : currentState.valves) {
-            if (currentValve.id == neededValve.id) {
-                // Compare the statuses
-                if (neededValve.status != currentValve.status) {
-                    // Write to the corresponding pin
-                    digitalWrite(pinMap[neededValve.name.c_str()], neededValve.status ? HIGH : LOW);
-                    Serial.print("Status of "); 
-                    //Serial.print(neededValve.name); 
-                    Serial.print(" changed to "); 
-                    Serial.println(neededValve.status ? "OPEN" : "CLOSED");
-                }
-                break; // No need to check other valves once found
-            }
-        }
-    }
-
-    // Update pump state
-    if (neededState.pump.status != currentState.pump.status) {
-        digitalWrite(pinMap[currentState.pump.name.c_str()], neededState.pump.status ? HIGH : LOW);
-        Serial.print("Status of "); 
-        //Serial.print(currentState.pump.name); 
-        Serial.print(" changed to "); 
-        Serial.println(neededState.pump.status ? "ON" : "OFF");
-    }
-}
-
-
 unsigned long messageTimestamp = 0;
-//Root root(System(0, Components({Valve(0, "", false)}, Pump(0, "", false))),Sensors({Sensor(0, "" ,"", "")})), "");
-Root root(System(0, Components(), Sensors({})), "");
-Components neededStateComponets;
+
 void setup() {
   USE_SERIAL.begin(115200);
   USE_SERIAL.setDebugOutput(true);
@@ -507,7 +469,6 @@ void setup() {
     delay(100);
   }
   
-
   String ip = WiFi.localIP().toString();
   USE_SERIAL.printf("[SETUP] WiFi Connected %s\n", ip.c_str());
 
@@ -519,18 +480,14 @@ void setup() {
   neededStateComponets = initializeNeededStateComponents();
 }
 
-
-
 void loop() {
   socketIO.loop();
   unsigned long time = millis();
 
   currentState = digitalRead(BUTTON_PIN);
   if (lastState == HIGH && currentState == LOW) {
-    sendEmitJson("kefteme");
+    sendEmitJson("kefteme", root.toJson());
     digitalWrite(LED, HIGH);
-    refresPhysicalComponentsAccordingToNeededState(neededStateComponets, root.system.components);
-    Serial.println("The button is pressed");
     Serial.println(currentMode);
     if (currentMode == TIME) {
       timeWattering();
