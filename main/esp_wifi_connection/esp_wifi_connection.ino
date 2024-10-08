@@ -22,6 +22,8 @@ DHT dht(DHTPIN, DHTTYPE);
 WiFiMulti WiFiMulti;
 SocketIOclient socketIO;
 
+
+
 enum Mode {
   MANUAL,
   DIRECT,
@@ -38,10 +40,10 @@ class TimeSettings {
 
 std::map<String, int>
   pinMap = {
-    { "pumpBtn", PUMP },
-    { "mainValveBtn", VALVE_MAIN },
-    { "valve1Btn", VALVE1 },
-    { "valve2Btn", VALVE2 },
+    { "Pump", PUMP },
+    { "Valve 1", VALVE_MAIN },
+    { "Valve 2", VALVE1 },
+    { "Valve 3", VALVE2 },
   };
 
 Mode currentMode;
@@ -53,10 +55,9 @@ int currentState;
 bool isSendedMasterEmit = false;
 
 
+
 const char *jsonString = R"({
     "timestamp": "2024-10-03T18:40:49.988Z",
-    "data": {
-      "timestamp": "2024-09-10T16:18:48.755Z",
       "data": {
         "system": {
           "id": 0,
@@ -123,12 +124,140 @@ const char *jsonString = R"({
                 "unit": "%"
               }
             }
-          },
-          "timestamp": "2024-09-10T12:00:00Z"
+          }
         }
-      }
     }
 })";
+
+class Valve {
+public:
+    int id;
+    std::string name;
+    bool status;
+    std::string location;
+
+    Valve(int id, const std::string& name, bool status, const std::string& location)
+        : id(id), name(name), status(status), location(location) {}
+
+    void print() const {
+    Serial.print("Valve ID: "); Serial.println(id);
+    Serial.print("Name: "); Serial.println(name.c_str());
+    Serial.print("Status: "); Serial.println(status ? "Open" : "Closed");
+    Serial.print("Location: "); Serial.println(location.c_str());
+    }
+};
+
+class Pump {
+public:
+    int id;
+    std::string name;
+    bool status;
+
+    Pump(int id, const std::string& name, bool status)
+        : id(id), name(name), status(status) {}
+
+    void print() {
+    Serial.print("Pump ID: "); Serial.println(id);
+    Serial.print("Name: "); Serial.println(name.c_str());
+    Serial.print("Status: "); Serial.println(status ? "On" : "Off");
+    }
+};
+
+class Sensor {
+public:
+    int id;
+    std::string name;
+    float value;
+    std::string unit;
+    std::string location;
+
+    Sensor(int id, const std::string& name, float value, const std::string& unit, const std::string& location)
+        : id(id), name(name), value(value), unit(unit), location(location) {}
+
+    void print() const {
+        Serial.print("Sensor ID: "); Serial.println(id);
+        Serial.print("Name: "); Serial.println(name.c_str());
+        Serial.print("Value: "); Serial.print(value); Serial.print(" "); Serial.println(unit.c_str());
+        Serial.print("Location: "); Serial.println(location.c_str());
+    }
+};
+
+class Components {
+public:
+    std::vector<Valve> valves;
+    Pump pump;
+    Components() : valves(), pump(0, "", false) {}
+
+    Components(const std::vector<Valve>& valves, const Pump& pump)
+        : valves(valves), pump(pump) {}
+
+    void print() {
+        Serial.println("--- Valves ---");
+        for (const auto& valve : valves) {
+            valve.print();
+            Serial.println();  // Print newline after each valve
+        }
+        Serial.println("--- Pump ---");
+        pump.print();
+    }
+};
+
+class Sensors {
+public:
+    std::vector<Sensor> sensors;
+
+    Sensors(const std::vector<Sensor>& sensors)
+        : sensors(sensors) {}
+
+    void print() {
+        Serial.println("--- Sensors ---");
+        for (const auto& sensor : sensors) {
+            sensor.print();
+            Serial.println();  // Print newline after each sensor
+        }
+    }
+};
+
+class System {
+public:
+    int id;
+    Components components;
+    Sensors sensors;
+
+    System(int id, const Components& components, const Sensors& sensors)
+        : id(id), components(components),sensors(sensors) {}
+
+    void print() {
+        Serial.print("System ID: "); Serial.println(id);
+        components.print();
+        sensors.print();
+    }
+};
+
+class Root {
+public:
+    System system;
+    std::string timestamp;
+
+    Root(const System& system, const std::string& timestamp)
+        : system(system), timestamp(timestamp) {}
+    void print() {
+        Serial.println("--- Root System ---");
+        Serial.print("Timestamp: "); Serial.println(timestamp.c_str());
+        system.print();
+    }
+};  
+
+// class CurrentState {
+// public:
+//     bool valve1Status;
+//     bool valve2Status;
+//     bool valve3Status;
+//     bool pumpStatus;
+
+//     CurrentState(bool v1, bool v2, bool v3, bool p)
+//         : valve1Status(v1), valve2Status(v2), valve3Status(v3), pumpStatus(p) {}
+// };
 
 void handleBtnActionEmit(DynamicJsonDocument doc) {
   String componentName = doc[1]["btnName"];
@@ -280,8 +409,77 @@ void sendEmitJson(String name) {
   USE_SERIAL.println(output);
 }
 
-unsigned long messageTimestamp = 0;
+Root initializeSystemComponents() {
+    std::vector<Valve> valves = {
+        Valve(1, "Valve 1", false, "zone 1"),
+        Valve(2, "Valve 2", false, "zone 2"),
+        Valve(3, "Valve 3", false, "zone 3")
+    };
+    Pump pump(1, "Pump", false);
 
+    std::vector<Sensor> sensors = {
+        Sensor (1, "Temperature Sensor", 1, "cel", "main"),
+        Sensor (2, "Water Level Sensor", 1, "cel", "main"),
+        Sensor (3, "Air Humidity Sensor", 1, "cel", "main"),
+        Sensor(4, "Soil Humidity Sensor 1", 1, "cel", "main"),
+        Sensor(5, "Soil Humidity Sensor 2", 1, "cel", "main")
+    };
+
+    Components components(valves, pump);
+
+
+    System system(0, components, sensors);
+    std::string timestamp = "2024-10-03T18:40:49.988Z";
+    Root root(system, timestamp);
+
+    return root;
+}
+
+Components initializeNeededStateComponents(){
+      std::vector<Valve> valves = {
+        Valve(1, "Valve 1", false, "zone 1"),
+        Valve(2, "Valve 2", false, "zone 2"),
+        Valve(3, "Valve 3", false, "zone 3")
+    };
+    Pump pump(1, "Pump", true);
+    Components components(valves, pump);
+    return components;
+}
+
+void refresPhysicalComponentsAccordingToNeededState(Components neededState, Components currentState){
+    for (const auto& neededValve : neededState.valves) {
+        // Find the current valve corresponding to the needed valve
+        for (const auto& currentValve : currentState.valves) {
+            if (currentValve.id == neededValve.id) {
+                // Compare the statuses
+                if (neededValve.status != currentValve.status) {
+                    // Write to the corresponding pin
+                    digitalWrite(pinMap[neededValve.name.c_str()], neededValve.status ? HIGH : LOW);
+                    Serial.print("Status of "); 
+                    //Serial.print(neededValve.name); 
+                    Serial.print(" changed to "); 
+                    Serial.println(neededValve.status ? "OPEN" : "CLOSED");
+                }
+                break; // No need to check other valves once found
+            }
+        }
+    }
+
+    // Update pump state
+    if (neededState.pump.status != currentState.pump.status) {
+        digitalWrite(pinMap[currentState.pump.name.c_str()], neededState.pump.status ? HIGH : LOW);
+        Serial.print("Status of "); 
+        //Serial.print(currentState.pump.name); 
+        Serial.print(" changed to "); 
+        Serial.println(neededState.pump.status ? "ON" : "OFF");
+    }
+}
+
+
+unsigned long messageTimestamp = 0;
+//Root root(System(0, Components({Valve(0, "", false)}, Pump(0, "", false))),Sensors({Sensor(0, "" ,"", "")})), "");
+Root root(System(0, Components(), Sensors({})), "");
+Components neededStateComponets;
 void setup() {
   USE_SERIAL.begin(115200);
   USE_SERIAL.setDebugOutput(true);
@@ -308,6 +506,7 @@ void setup() {
   while (WiFiMulti.run() != WL_CONNECTED) {
     delay(100);
   }
+  
 
   String ip = WiFi.localIP().toString();
   USE_SERIAL.printf("[SETUP] WiFi Connected %s\n", ip.c_str());
@@ -315,7 +514,12 @@ void setup() {
   socketIO.begin("192.168.137.1", 8080, "/socket.io/?EIO=4");
 
   socketIO.onEvent(socketIOEvent);
+
+  root = initializeSystemComponents();
+  neededStateComponets = initializeNeededStateComponents();
 }
+
+
 
 void loop() {
   socketIO.loop();
@@ -325,10 +529,12 @@ void loop() {
   if (lastState == HIGH && currentState == LOW) {
     sendEmitJson("kefteme");
     digitalWrite(LED, HIGH);
+    refresPhysicalComponentsAccordingToNeededState(neededStateComponets, root.system.components);
     Serial.println("The button is pressed");
     Serial.println(currentMode);
     if (currentMode == TIME) {
       timeWattering();
+      
     }
   } else if (lastState == LOW && currentState == HIGH) {
     digitalWrite(LED, LOW);
