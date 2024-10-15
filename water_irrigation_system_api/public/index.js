@@ -1,3 +1,4 @@
+localStorage.debug = '*';
 $(document).ready(function () {
     // Initially show the Direct Control section
     $('#directControl').show();
@@ -19,15 +20,15 @@ $(document).ready(function () {
         displayValue.text($(this).val());
     });
 
+
     // Socket connection setup
-    const socket = io();
+    const socket = io.connect();
+
     socket.on("connect", () => {
         console.log("Connected to the server!");
         socket.emit("client", true); // Notify server of client connection
-        socket.emit('checkIfConnectedToMaster', null, (status) => {
-            console.log('Master connection status:', status);
-            $('#connectionToMaster-status').text(status ? 'TRUE' : 'FALSE');
-        });
+        //socket.emit('checkIfConnectedToMaster');
+        console.log('emiiit');
     });
 
     // Listen for system state updates
@@ -56,7 +57,9 @@ $(document).ready(function () {
     $('.toggledButton').each(function () {
         $(this).on('click', function () {
             const action = $(this).text() === 'ON' ? 'OFF' : 'ON';
-            socket.emit("btnAction", { btnName: this.id, action });
+            socket.emit("btnAction", { btnName: this.id, action }, (response) => {
+                console.log(response);
+            });
             $(this).text(action);
         });
     });
@@ -79,6 +82,12 @@ $(document).ready(function () {
     $("#timeSettingsForm").submit((event) => {
         event.preventDefault();
         const data = $(event.currentTarget).serialize();
+        console.log(data);
+        // const dataToServer = {
+        //     zone1StartHour:data.zone1Start.split(":")[0]
+        // }
+        //console.log(dataToServer);
+
         if (timeSettingsFormValidate(data)) {
             $.ajax({
                 type: "POST",
@@ -137,7 +146,7 @@ function updateUI(data) {
             valveButton.text(valve.status ? 'ON' : 'OFF');  // Set text based on status
         }
     });
-    console.log($('#Valve_3'));
+    //console.log($('#Valve_3'));
     // Update sensors
     sensors.forEach((sensor) => {
         $(".sensors").append(`<p>${sensor.name}: <span>${sensor.value} ${sensor.unit}</span></p>`);

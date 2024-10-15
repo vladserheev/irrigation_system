@@ -9,6 +9,7 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server);
 const cors = require('cors');
+const {response} = require("express");
 
 const PORT = 8080;
 
@@ -27,37 +28,55 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html')); // Change 'src' to 'public'
 });
 
+    // io.use((socket, next) => {
+    //     const role = socket.handshake.query.role;
+    //     if (role === 'master') {
+    //         // Handle master connection
+    //         log("INFO", `Master connected with ID: ${socket.id}`);
+    //         masterID = socket.id;
+    //         isConnectedToMaster = true;
+    //         socket.to('clients').emit("isConnectedToMaster", true);  // Notify clients that master is connected
+    //         next();
+    //     } else if (role === 'client') {
+    //         // Handle client connection
+    //         log("INFO", `Client connected with ID: ${socket.id}`);
+    //         socket.join('clients');
+    //         next();
+    //     }
+    // });
+
 io.on('connection', (socket) => {
+    console.log(socket.server.eio.clients);
     socket.on('btnAction', (arg, callback) => {
         log("INFO", arg.btnName + " " + arg.action);
-        if (masterID) {
-            socket.to(masterID).emit("btnAction", { btnName: arg.btnName, btnVal: arg.action });
-        } else {
-            log("ERROR", "Master not connected, cannot send button action");
-            if (typeof callback === 'function') {
-                callback({ error: "Master not connected" });
-            }
+        if(isConnectedToMaster) {
+            socket.to(masterID).emit("btnAction", {btnName: arg.btnName, btnVal: arg.action});
+            callback(true, "OK!");
+        }else{
+            callback(false, "Not connected to master!");
         }
     });
 
-    socket.on('master', (arg, callback) => {
-        log("INFO", "Master connected with ID: " + socket.id);
-        socket.to("clients").emit("isConnectedToMaster", true);
-        masterID = socket.id;
-        isConnectedToMaster = true;
+    socket.on("client", (args, callback) => {
+        log("INFO", `Client connected with ID: ${socket.id}`);
+        socket.join('clients');
+        console.log(socket.rooms);
+        io.to("clients").emit("isConnectedToMaster", isConnectedToMaster);
     });
 
-    socket.on('client', (arg, callback) => {
-        log("INFO", "Client connected with ID: " + socket.id);
-        socket.join('clients');
-    });
+    socket.on("master", (args, callback) => {
+        log("INFO", `Master connected with ID: ${socket.id}`);
+        masterID = socket.id;
+        isConnectedToMaster = true;
+        io.to('clients').emit("isConnectedToMaster", isConnectedToMaster);
+    })
 
     socket.on('kefteme', (arg, callback) => {
         log("INFO", "Received emit with JSON from ESP");
         if (arg && arg.val) {
             try {
                 log("INFO", arg.val);
-                socket.to('clients').emit('updateCurrentStateOnClientSide', arg.val);
+                io.to('clients').emit('updateCurrentStateOnClientSide', arg.val);
             } catch (e) {
                 log("ERROR", e);
             }
@@ -66,15 +85,14 @@ io.on('connection', (socket) => {
 
     socket.on('checkIfConnectedToMaster', (arg, callback) => {
         log('INFO', `Client ${socket.id} checking if connected to master...`);
-        if (typeof callback === 'function') {
-            if (isConnectedToMaster) {
-                log('INFO', `Client ${socket.id} connected to master ${masterID}`);
-                callback(true);
-            } else {
-                callback(false);
-            }
+        if (isConnectedToMaster) {
+            log('INFO', `Client ${socket.id} connected to master ${masterID}`);
+            console.log(socket.rooms);
+            io.emit("isConnectedToMaster", true);
+
         } else {
-            log('ERROR', "Callback is not a function for checking master connection!");
+            io.to('clients').emit("isConnectedToMaster", false);
+            log('INFO', `Client ${socket.id} NOT connected to master ${masterID}`);
         }
     });
 
@@ -88,7 +106,7 @@ io.on('connection', (socket) => {
         if (socket.id === masterID) {
             masterID = 0;
             isConnectedToMaster = false;
-            socket.to("clients").emit("isConnectedToMaster", false);
+            io.to('clients').emit("isConnectedToMaster", false);  // Notify clients that master is disconnected
             log("INFO", 'Master disconnected');
         } else {
             log("INFO", 'Client disconnected');
@@ -129,15 +147,36 @@ app.post('/api/timeSettingsForm', (req, res) => {
     log("INFO", "Got Time Settings Form");
     log("INFO", body);
 
+
+    const data = {
+        zones: [
+            {
+                name: "Zone 1",
+                startHour: parseInt(body.zone1Start.split(":")[0]),
+                startMinute: parseInt(body.zone1Start.split(":")[1]),
+                finishHour: parseInt(body.zone1End.split(":")[0]),
+                finishMinute: parseInt(body.zone1End.split(":")[1])
+            },
+            {
+                name: "Zone 2",
+                startHour: parseInt(body.zone2Start.split(":")[0]),
+                startMinute: parseInt(body.zone2Start.split(":")[1]),
+                finishHour: parseInt(body.zone2End.split(":")[0]),
+                finishMinute: parseInt(body.zone2End.split(":")[1])
+            }
+        ]
+    };
+
+
     if (masterID) {
-        io.to(masterID).emit("timeSettings", body);  // Emit to the master by socket ID
+        io.to(masterID).emit("timeSettings", data);  // Emit to the master by socket ID
     } else {
         log("ERROR", "Master is not connected, unable to send manual settings.");
         return res.status(500).send({ error: "Master is not connected." });
     }
 
     if (body) {
-        res.status(200).send(body);
+        res.status(200).send(data);
     } else {
         res.status(400).send({ error: "Invalid data." });
     }

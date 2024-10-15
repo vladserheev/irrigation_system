@@ -46,6 +46,8 @@ function updateCurrentStateOnClientSide () {
 
 }
 
+
+
 const prepareDataFromEspForClient = (data) => {
     // Extracting valves, pump, and sensor statuses
     const valves = data.data.data.system.components.valves;
