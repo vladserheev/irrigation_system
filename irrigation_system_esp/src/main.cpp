@@ -14,8 +14,7 @@ const int IO = 27;    // DAT
 const int SCLK = 14;  // CLK
 const int CE = 26; 
 
-#define DHTPIN 5
-#define DHTTYPE DHT11
+
 #define BUTTON_PIN 21  // GIOP21 pin connected to button
 #define LED 22
 #define VALVE_MAIN 12
@@ -24,7 +23,7 @@ const int CE = 26;
 #define PUMP 4
 #define USE_SERIAL Serial
 
-DHT dht(DHTPIN, DHTTYPE);
+
 WiFiMulti WiFiMulti;
 SocketIOclient socketIO;
 ThreeWire myWire(IO, SCLK, CE);
@@ -561,6 +560,22 @@ void handlingSocketEvent(String eventName, DynamicJsonDocument doc){
 
 // IO //
 
+void sendEmit(String name, String val) {
+  DynamicJsonDocument doc(1024);
+  JsonArray array = doc.to<JsonArray>();
+  array.add(name);
+
+  JsonObject param1 = array.createNestedObject();
+  param1["val"] = val;
+
+  String output;
+  serializeJson(doc, output);
+
+  socketIO.sendEVENT(output);
+
+  USE_SERIAL.println(output);
+}
+
 void socketIOEvent(socketIOmessageType_t type, uint8_t *payload, size_t length) {
   switch (type) {
     case sIOtype_DISCONNECT:
@@ -626,22 +641,6 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t *payload, size_t length) 
       USE_SERIAL.printf("[IOc] get binary ack: %u\n", length);
       break;
   }
-}
-
-void sendEmit(String name, String val) {
-  DynamicJsonDocument doc(1024);
-  JsonArray array = doc.to<JsonArray>();
-  array.add(name);
-
-  JsonObject param1 = array.createNestedObject();
-  param1["val"] = val;
-
-  String output;
-  serializeJson(doc, output);
-
-  socketIO.sendEVENT(output);
-
-  USE_SERIAL.println(output);
 }
 
 void sendEmitJson(String name, StaticJsonDocument<200> jsonString) {
@@ -778,7 +777,7 @@ void setup() {
   USE_SERIAL.printf("[SETUP] WiFi Connected %s\n", ip.c_str());
 
   String query = "/socket.io/?EIO=4";  // Here you specify the role as master
-  socketIO.begin("192.168.1.100", 8080, query.c_str());
+  socketIO.begin("192.168.1.101", 8080, query.c_str());
 
   socketIO.onEvent(socketIOEvent);
 

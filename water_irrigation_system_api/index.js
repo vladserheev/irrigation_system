@@ -7,7 +7,7 @@ const { log } = require('./utils/logger');
 const { pushStatisticsToDB, updateCurrentStateOnClientSide, prepareDataFromEspForClient } = require('./src/core');
 const app = express();
 const server = createServer(app);
-const io = new Server(server);
+//const io = new Server(server);
 const cors = require('cors');
 const {response} = require("express");
 
@@ -19,7 +19,13 @@ let isConnectedToMaster = false;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(cors());
+const io = require('socket.io')(server, {
+    cors: {
+        origin: "*",  // Allow all origins
+        methods: ["GET", "POST"],
+        transports: ['websocket']
+    }
+});
 app.use((req, res, next) => {
     log("INFO", `Received ${req.method} request for ${req.url}`);
     next();
@@ -28,25 +34,26 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html')); // Change 'src' to 'public'
 });
 
-    // io.use((socket, next) => {
-    //     const role = socket.handshake.query.role;
-    //     if (role === 'master') {
-    //         // Handle master connection
-    //         log("INFO", `Master connected with ID: ${socket.id}`);
-    //         masterID = socket.id;
-    //         isConnectedToMaster = true;
-    //         socket.to('clients').emit("isConnectedToMaster", true);  // Notify clients that master is connected
-    //         next();
-    //     } else if (role === 'client') {
-    //         // Handle client connection
-    //         log("INFO", `Client connected with ID: ${socket.id}`);
-    //         socket.join('clients');
-    //         next();
-    //     }
-    // });
+// io.use((socket, next) => {
+//     const role = socket.handshake.query.role;
+//     if (role === 'master') {
+//         // Handle master connection
+//         log("INFO", `Master connected with ID: ${socket.id}`);
+//         masterID = socket.id;
+//         isConnectedToMaster = true;
+//         socket.to('clients').emit("isConnectedToMaster", true);  // Notify clients that master is connected
+//         next();
+//     } else if (role === 'client') {
+//         // Handle client connection
+//         log("INFO", `Client connected with ID: ${socket.id}`);
+//         socket.join('clients');
+//         next();
+//     }
+// });
 
 io.on('connection', (socket) => {
-    console.log(socket.server.eio.clients);
+    
+
     socket.on('btnAction', (arg, callback) => {
         log("INFO", arg.btnName + " " + arg.action);
         if(isConnectedToMaster) {
