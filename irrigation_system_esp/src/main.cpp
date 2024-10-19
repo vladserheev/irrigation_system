@@ -5,10 +5,10 @@
 #include <string>
 #include <map>
 #include <ArduinoJson.h>
-#include <SocketIOclient.h>
 #include "DHT.h"
 #include <ThreeWire.h>
 #include <RtcDS1302.h>
+#include <ArduinoLog.h>
 
 // Classes
 #include "components/Valve.h"
@@ -20,6 +20,7 @@
 #include "components/WateringSchedule.H"
 #include "components/Zone.h"
 #include "components/ModeHandler.h"
+#include "components/SocketHandler.h"
 
 const int IO = 27;    // DAT
 const int SCLK = 14;  // CLK
@@ -34,11 +35,21 @@ const int CE = 26;
 #define PUMP 4
 #define USE_SERIAL Serial
 
+const char* ssid = "KEFTEME";
+const char* pass = "spokospoko";
+const char* socketioIp = "192.168.1.103";
+uint16_t socketioPort = 8080;
+const char* socketioQuery = "/socket.io/?EIO=4";
+
 
 WiFiMulti WiFiMulti;
-SocketIOclient socketIO;
+
+
+//SocketIOclient socketIO = socketHandler.socketIO;
 ThreeWire myWire(IO, SCLK, CE);
 RtcDS1302<ThreeWire> Rtc(myWire);
+ModeHandler modeHandler(Rtc);
+SocketHandler socketHandler(modeHandler);
 
 
 std::map<String, int>
@@ -48,8 +59,6 @@ pinMap = {
   { "Valve_2", VALVE1 },
   { "Valve_3", VALVE2 },
 };
-
-//Mode currentMode;
 
 int lastState = LOW; 
 int currentState;
@@ -64,7 +73,7 @@ void handleBtnActionEmit(DynamicJsonDocument doc) {
   root.system.components.updateComponentStateByName(pinMap, componentName, btnVal);
 }
 
-ModeHandler modeHandler(Rtc);
+
 
 void handlingSocketEvent(String eventName, DynamicJsonDocument doc){
   Serial.printf("Handling socket event: %s \n", eventName);
@@ -85,110 +94,7 @@ void handlingSocketEvent(String eventName, DynamicJsonDocument doc){
 
 // IO //
 
-void sendEmit(String name, String val) {
-  DynamicJsonDocument doc(1024);
-  JsonArray array = doc.to<JsonArray>();
-  array.add(name);
 
-  JsonObject param1 = array.createNestedObject();
-  param1["val"] = val;
-
-  String output;
-  serializeJson(doc, output);
-
-  socketIO.sendEVENT(output);
-
-  USE_SERIAL.println(output);
-}
-
-void socketIOEvent(socketIOmessageType_t type, uint8_t *payload, size_t length) {
-  switch (type) {
-    case sIOtype_DISCONNECT:
-      USE_SERIAL.printf("[IOc] Disconnecteddd!\n");
-      break;
-    case sIOtype_CONNECT:
-      USE_SERIAL.printf("[IOc] Connected to url: %s\n", payload);
-      socketIO.send(sIOtype_CONNECT, "/");
-      sendEmit("master", "true");
-      break;
-    case sIOtype_EVENT:
-      {
-        char *sptr = NULL;
-        int id = strtol((char *)payload, &sptr, 10);
-        USE_SERIAL.printf("[IOc] get event: %s id: %d\n", payload, id);
-        if (id) {
-          payload = (uint8_t *)sptr;
-        }
-        DynamicJsonDocument doc(1024);
-        DeserializationError error = deserializeJson(doc, payload, length);
-        if (error) {
-          USE_SERIAL.print(F("deserializeJson() failed: "));
-          USE_SERIAL.println(error.c_str());
-          return;
-        }
-
-        String eventName = doc[0];
-        
-        handlingSocketEvent(eventName, doc);
-
-        USE_SERIAL.printf("[IOc] event name: %s\n", eventName.c_str());
-
-        // Message Includes a ID for a ACK (callback)
-        if (id) {
-          // creat JSON message for Socket.IO (ack)
-          DynamicJsonDocument docOut(1024);
-          JsonArray array = docOut.to<JsonArray>();
-
-          // add payload (parameters) for the ack (callback function);
-          JsonObject param1 = array.createNestedObject();
-          param1["now"] = millis();
-
-          // JSON to String (serializion)
-          String output;
-          output += id;
-          serializeJson(docOut, output);
-
-          // Send event
-          socketIO.send(sIOtype_ACK, output);
-        }
-        break;
-      }
-    case sIOtype_ACK:
-      USE_SERIAL.printf("[IOc] get ack: %u\n", length);
-      break;
-    case sIOtype_ERROR:
-      USE_SERIAL.printf("[IOc] get error: %u\n", length);
-      break;
-    case sIOtype_BINARY_EVENT:
-      USE_SERIAL.printf("[IOc] get binary: %u\n", length);
-      break;
-    case sIOtype_BINARY_ACK:
-      USE_SERIAL.printf("[IOc] get binary ack: %u\n", length);
-      break;
-  }
-}
-
-void sendEmitJson(String name, JsonDocument jsonString) {
-  DynamicJsonDocument doc(1024);          // Create a JSON document
-  JsonArray array = doc.to<JsonArray>();  // Create an array in the document
-
-  // // Add event name to the array
-  array.add(name);  // Use the 'name' parameter as the event name
-
-  // // Create an object to hold parameters
-  JsonObject param1 = array.createNestedObject();
-  param1["val"] = jsonString;  // Add your JSON string to the parameters
-
-  // // Serialize the JSON document to a String
-  String output;
-  serializeJson(doc, output);  // Serialize the document into the output string
-
-  // // Send event
-  socketIO.sendEVENT(output);  // Send the output string through Socket.IO
-
-  // // Print JSON for debugging
-  USE_SERIAL.println(output);
-}
 
 // system initialization //
 
@@ -239,6 +145,7 @@ unsigned long messageTimestamp = 0;
 void setup() {
   USE_SERIAL.begin(115200);
   USE_SERIAL.setDebugOutput(true);
+  Log.begin(LOG_LEVEL_VERBOSE, &Serial);
 
   Rtc.Begin();
   RtcDateTime compiled = RtcDateTime(__DATE__, __TIME__);
@@ -275,9 +182,10 @@ void setup() {
   }
 
   Rtc.SetDateTime(compiled);
-  USE_SERIAL.println();
-  USE_SERIAL.println();
-  USE_SERIAL.println();
+
+  Log.notice(( "******************************************" CR));                  
+  Log.notice(  "******* Irrigation System Logging ********" CR);              
+  Log.notice(F("******************************************" CR));
 
   pinMode(PUMP, OUTPUT);
   pinMode(VALVE_MAIN, OUTPUT);
@@ -287,25 +195,25 @@ void setup() {
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
   for (uint8_t t = 4; t > 0; t--) {
-    USE_SERIAL.printf("[SETUP] BOOT WAIT %d...\n", t);
+    Log.notice("[SETUP] BOOT WAIT %d...\n", t);
     USE_SERIAL.flush();
     delay(1000);
   }
 
-  WiFiMulti.addAP("KEFTEME", "spokospoko");
-
+  // Connnection to WiFi
+  WiFiMulti.addAP(ssid, pass);
   while (WiFiMulti.run() != WL_CONNECTED) {
     delay(100);
   }
   
   String ip = WiFi.localIP().toString();
-  USE_SERIAL.printf("[SETUP] WiFi Connected %s\n", ip.c_str());
+  Log.notice("[SETUP] WiFi Connected %s\n", ip.c_str());
 
-  String query = "/socket.io/?EIO=4";  // Here you specify the role as master
-  socketIO.begin("192.168.1.103", 8080, query.c_str());
+  // Connecting to socketIO server
+  //socketHandler.addListener(&modeHandler);
+  socketHandler.socketConnect(socketioIp, socketioPort, socketioQuery);
 
-  socketIO.onEvent(socketIOEvent);
-
+  // initialization Root
   root = initializeSystemComponents();
   neededStateComponets = initializeNeededStateComponents();
 }
@@ -319,16 +227,11 @@ void loop() {
 
   currentState = digitalRead(BUTTON_PIN);
   if (lastState == HIGH && currentState == LOW) {
-    sendEmitJson("kefteme", root.toJson());
+    Log.notice("Button press on oin: %d" CR, BUTTON_PIN);
+    socketHandler.sendEmitJson("kefteme", root.toJson());
     digitalWrite(LED, HIGH);
-    //Serial.println(currentMode);
-    // if (currentMode == TIME) {
-    //   timeWattering();
-      
-    // }
   } else if (lastState == LOW && currentState == HIGH) {
     digitalWrite(LED, LOW);
-    Serial.println("The button is released");
   }
   lastState = currentState;
 }

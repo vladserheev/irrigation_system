@@ -6,13 +6,33 @@
 #include "WateringSchedule.h"  // Include the WateringSchedule struct
 #include "Valve.h"  // Make sure to include the Valve class definition
 #include "Mode.h"
+#include "IEventListener.h"
 
-class ModeHandler {
+class ModeHandler{
   private:
       std::vector<Zone> zones;  // List of zones
       RtcDS1302<ThreeWire> &rtc;
 
   public:
+    
+
+        // void onButtonAction(const String& componentName, const String& btnVal) override {
+        //     Log.notice("Handling button action for %s: %s\n", componentName.c_str(), btnVal.c_str());
+        //     // Ваш код для обработки нажатий кнопок
+        // }
+
+        // // Реализация метода для обработки настроек сенсоров
+        // void onSensorSettings(const DynamicJsonDocument& doc) override {
+        //     Log.notice("Handling sensor settings event.");
+        //     // Ваш код для обработки настроек сенсоров
+        // }
+
+        // // Реализация метода для обработки временных настроек
+        // void onTimeSettings(const DynamicJsonDocument& doc) override {
+        //     Log.notice("Handling time settings event.");
+        //     //addNewTimeSettingsToZones(doc);
+        // }
+
       ModeHandler(RtcDS1302<ThreeWire> &rtcRef) : rtc(rtcRef) {}
 
       // Add a new watering zone with associated valves
