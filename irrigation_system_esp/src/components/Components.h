@@ -7,7 +7,7 @@
 #include "Valve.h"
 #include "Pump.h"
 #include <ArduinoJson.h>
-
+#include "ArduinoLog.h"
 class Components {
 public:
     Components();
@@ -15,6 +15,7 @@ public:
     void print() const;
     bool canTurnOnPump();
     bool canCloseValves();
+    bool getValveStatusByName(String name);
     JsonDocument toJson();
     void updateComponentStateByName(std::map<String, int> pinMap, std::string componentName, std::string componentStatus);
 private:

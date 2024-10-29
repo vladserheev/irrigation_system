@@ -5,115 +5,97 @@
 #include <SocketIOclient.h>
 #include <ArduinoLog.h>
 //#include "ModeHandler.h"
+#include "EventEmiter.h"
 
-SocketIOclient socketIO;
+//SocketIOclient socketIO;
 
 class SocketHandler {
-    ModeHandler& modeHandler; // Reference to ModeHandler
+    EventEmitter& eventEmitter;
+    SocketIOclient socketIO;
+
+    const char* socketioIp;
+    uint16_t socketioPort;
+    const char* socketioQuery;
+
+    DynamicJsonDocument doc{1024}; // Резервирование памяти только один раз
 
 public:
-    SocketHandler(ModeHandler& handler) : modeHandler(handler) {}
+    SocketHandler(EventEmitter& eventEmitter, const char* ip, uint16_t port, const char* query)
+        : eventEmitter(eventEmitter), socketioIp(ip), socketioPort(port), socketioQuery(query) {}
 
-    void handlingSocketEvent(String eventName, DynamicJsonDocument doc) {
-        Serial.printf("Handling socket event: %s \n", eventName);
+    void initializeSocket() {
+        Log.notice("Socket initilisation");
+        socketIO.begin(socketioIp, socketioPort, socketioQuery);
+        socketIO.onEvent([this](socketIOmessageType_t type, uint8_t *payload, size_t length) {
+            socketIOEvent(type, payload, length);
+        });
+    }
 
+    void loop() {
+        socketIO.loop(); // Call this method in your main loop function
+    }
+
+    void handlingSocketEvent(const String& eventName, const DynamicJsonDocument& doc) {
         if (eventName == "btnAction") {
-            Serial.println("Sensor Control!");
-            // Handle button action here
+            eventEmitter.emitEvent("button_event", doc);
         } else if (eventName == "sensorSettings") {
-            Serial.println("Sensor Setting!");
+            Log.notice("Sensor Setting received!" CR);
         } else if (eventName == "timeSettings") {
-            Serial.println("Time Setting!");
-            modeHandler.addNewTimeSettingsToZones(doc); // Call the method on modeHandler
+            eventEmitter.emitEvent("timed_mode", doc);
+        } else {
+            Log.warning("Unhandled socket event: %s\n", eventName.c_str());
         }
     }
 
     void socketIOEvent(socketIOmessageType_t type, uint8_t *payload, size_t length) {
         switch (type) {
             case sIOtype_DISCONNECT:
-                Log.notice("[IOc] Disconnected!\n");
+                Log.notice("[IOc] Disconnected!");
+                // Переподключение, если необходимо
+                initializeSocket();
                 break;
             case sIOtype_CONNECT:
                 Log.notice("[IOc] Connected to url: %s\n", payload);
                 socketIO.send(sIOtype_CONNECT, "/");
                 sendEmit("master", "true");
                 break;
-            case sIOtype_EVENT: {
-                char *sptr = NULL;
-                int id = strtol((char *)payload, &sptr, 10);
-                Log.notice("[IOc] get event: %s id: %d\n", payload, id);
-                if (id) {
-                    payload = (uint8_t *)sptr;
-                }
-                DynamicJsonDocument doc(1024);
-                DeserializationError error = deserializeJson(doc, payload, length);
-                if (error) {
-                    Log.notice(F("deserializeJson() failed: "));
-                    Log.notice(error.c_str());
-                    return;
-                }
-
-                String eventName = doc[0];
-                handlingSocketEvent(eventName, doc); // Call instance method
-
-                Log.notice("[IOc] event name: %s\n", eventName.c_str());
-
-                // Message Includes an ID for a ACK (callback)
-                if (id) {
-                    // Create JSON message for Socket.IO (ack)
-                    DynamicJsonDocument docOut(1024);
-                    JsonArray array = docOut.to<JsonArray>();
-                    JsonObject param1 = array.createNestedObject();
-                    param1["now"] = millis();
-
-                    String output;
-                    output += id;
-                    serializeJson(docOut, output);
-
-                    // Send event
-                    socketIO.send(sIOtype_ACK, output);
-                }
+            case sIOtype_EVENT:
+                parseSocketEvent(payload, length);
                 break;
-            }
-            case sIOtype_ACK:
-                Log.notice("[IOc] get ack: %u\n", length);
-                break;
-            case sIOtype_ERROR:
-                Log.error("[IOc] get error: %u\n", length);
-                break;
-            case sIOtype_BINARY_EVENT:
-                Log.notice("[IOc] get binary: %u\n", length);
-                break;
-            case sIOtype_BINARY_ACK:
-                Log.notice("[IOc] get binary ack: %u\n", length);
+            default:
+                Log.notice("[IOc] Event Type: %d, Length: %u\n", type, length);
                 break;
         }
     }
 
-    void socketConnect(const char* ip, u16_t port, const char* query) {
-        socketIO.begin(ip, port, query);  // Use your server's address and port
-        socketIO.onEvent([this](socketIOmessageType_t type, uint8_t *payload, size_t length) {
-            socketIOEvent(type, payload, length); // Pass the event to the instance method
-        });
+private:
+    void parseSocketEvent(uint8_t* payload, size_t length) {
+        DeserializationError error = deserializeJson(doc, payload, length);
+        if (error) {
+            Log.error(F("deserializeJson() failed: %s"), error.c_str());
+            return;
+        }
+
+        String eventName = doc[0].as<String>();
+        handlingSocketEvent(eventName, doc);
     }
 
-    void sendEmit(String name, String val) {
-        DynamicJsonDocument doc(1024);
+public:
+    void sendEmit(const String& name, const String& val) {
+        doc.clear();
         JsonArray array = doc.to<JsonArray>();
         array.add(name);
-
-        JsonObject param1 = array.createNestedObject();
-        param1["val"] = val;
+        JsonObject param = array.createNestedObject();
+        param["val"] = val;
 
         String output;
         serializeJson(doc, output);
-
         socketIO.sendEVENT(output);
         Log.notice("Sent emit to socket server!\n");
     }
 
-    void sendEmitJson(String name, JsonDocument jsonString) {
-        DynamicJsonDocument doc(1024);
+    void sendEmitJson(const String& name, const JsonDocument& jsonString) {
+        doc.clear();
         JsonArray array = doc.to<JsonArray>();
         array.add(name);
 
