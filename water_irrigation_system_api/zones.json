@@ -1,0 +1,44 @@
+{
+  "zones": [
+    {
+      "name": "Zone1",
+      "valve": {
+        "name": "Valve 1",
+        "status": true
+      },
+      "status": false,
+      "mode": "TIMED",
+      "schedules": [
+        {
+          "startHour": 0,
+          "startMinute": 0,
+          "finishHour": 0,
+          "finishMinute": 38
+        },
+        {
+          "startHour": 0,
+          "startMinute": 44,
+          "finishHour": 0,
+          "finishMinute": 47
+        }
+      ]
+    },
+    {
+      "name": "Zone2",
+      "valve": {
+        "name": "Valve 2",
+        "status": true
+      },
+      "status": true,
+      "mode": "AUTO",
+      "schedules": [
+        {
+          "startHour": 15,
+          "startMinute": 0,
+          "finishHour": 15,
+          "finishMinute": 0
+        }
+      ]
+    }
+  ]
+}

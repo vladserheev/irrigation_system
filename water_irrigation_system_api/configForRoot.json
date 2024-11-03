@@ -1,0 +1,18 @@
+{
+  "components": {
+    "valves": [
+      {"id": 1, "name": "Valve_1", "status": false, "zone": "zone 1"},
+      {"id": 2, "name": "Valve_2", "status": false, "zone": "zone 2"},
+      {"id": 3, "name": "Valve_3", "status": false, "zone": "zone 3"}
+    ],
+    "pump": {"id": 1, "name": "Pump", "status": false}
+  },
+  "sensors": [
+    {"id": 1, "name": "Temperature Sensor", "value": 25, "unit": "°", "location": "main"},
+    {"id": 2, "name": "Water Level Sensor", "value": 20, "unit": "cm", "location": "main"},
+    {"id": 3, "name": "Air Humidity Sensor", "value": 60, "unit": "%", "location": "main"},
+    {"id": 4, "name": "Soil Humidity Sensor 1", "value": 25, "unit": "%", "location": "main"},
+    {"id": 5, "name": "Soil Humidity Sensor 2", "value": 35, "unit": "%", "location": "main"}
+  ],
+  "timestamp": "2024-10-03T18:40:49.988Z"
+}

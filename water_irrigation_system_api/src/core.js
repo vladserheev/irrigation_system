@@ -1,4 +1,4 @@
-const fs = require('fs'); // Ensure fs is required
+const fs = require('fs').promises; // Ensure fs is required
 const { log } = require('../utils/logger'); // Import your log function
 
 const pushStatisticsToDB = (body, newEntry, res) => {
@@ -42,11 +42,126 @@ const pushStatisticsToDB = (body, newEntry, res) => {
     });
 }
 
-function updateCurrentStateOnClientSide () {
-
+const getConfigForRootFromDB = async (filename) => {
+    return readFromDB(filename);
 }
 
+const getZonesStateFromDB = async (filename) => {
+    return readFromDB(filename);
+}
 
+// const updateZonesConfigTimedSettings = (filename, newSchedulesData) => {
+//     // Read the current zones configuration
+//     return new Promise((resolve, reject) => {
+//         fs.readFile(filename, 'utf8', (err, data) => {
+//             if (err) {
+//                 log('ERROR', `Error reading file: ${err}`);
+//                 reject(`Error reading file: ${err}`);
+//                 return;
+//             }
+//
+//             let zonesConfig;
+//             try {
+//                 zonesConfig = JSON.parse(data); // Parse the existing zones configuration
+//                 log('INFO', 'Current zones configuration read successfully.');
+//             } catch (parseError) {
+//                 log('ERROR', `Error parsing JSON: ${parseError}`);
+//                 reject(`Error parsing JSON: ${parseError}`);
+//                 return;
+//             }
+//
+//             // Update only the schedules for each zone based on new data
+//             newSchedulesData.zones.forEach(newZone => {
+//                 const zoneToUpdate = zonesConfig.zones.find(zone => zone.name === newZone.name);
+//                 if (zoneToUpdate) {
+//                     zoneToUpdate.schedules = newZone.schedules; // Update schedules only
+//                 }
+//             });
+//
+//             // Write the updated configuration back to the file
+//             fs.writeFile(filename, JSON.stringify(zonesConfig, null, 2), (writeErr) => {
+//                 if (writeErr) {
+//                     log('ERROR', `Error writing file: ${writeErr}`);
+//                     return;
+//                 }
+//                 log('INFO', 'Zones configuration updated successfully.');
+//                 resolve(zonesConfig);
+//             });
+//         });
+//     });
+// };
+
+
+
+
+const updateZonesConfigTimedSettings = async (filename, newSchedulesData) => {
+    console.log("new data");
+    console.log(newSchedulesData);
+    try {
+        // Read the current zones configuration
+        const data = await fs.readFile(filename, 'utf8');
+        log('INFO', 'Current zones configuration read successfully.');
+
+        let zonesConfig = JSON.parse(data); // Parse the existing zones configuration
+
+        // Update only the schedules for each zone based on new data
+        newSchedulesData.zones.forEach(newZone => {
+            const zoneToUpdate = zonesConfig.zones.find(zone => zone.name === newZone.name);
+            if (zoneToUpdate) {
+                console.log('update schedule');
+                zoneToUpdate.schedules = newZone.schedules; // Update schedules only
+            }
+        });
+
+        // Write the updated configuration back to the file
+        await fs.writeFile(filename, JSON.stringify(zonesConfig, null, 2));
+        log('INFO', 'Zones configuration updated successfully.');
+
+        return zonesConfig;
+    } catch (error) {
+        log('ERROR', `Failed to update zones configuration: ${error}`);
+        throw new Error('Zones configuration update failed');
+    }
+};
+
+
+
+//const fs = require('fs').promises; // Use fs.promises for promise-based file system operations
+
+const readFromDB = async (filename) => {
+    try {
+        const data = await fs.readFile(filename, 'utf8');
+        let configRoot = [];
+
+        // Parse file contents or create an empty array if file is empty
+        configRoot = JSON.parse(data) || [];
+        log('INFO', 'Data read successfully.');
+        return configRoot; // Return the parsed data
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            log('ERROR', `File not found: ${filename}`);
+            return "ERROR: File not found.";
+        } else if (error instanceof SyntaxError) {
+            log('ERROR', `Error parsing JSON: ${error.message}`);
+            return "ERROR: Invalid JSON format in " + filename;
+        } else {
+            log('ERROR', `Error reading file: ${error.message}`);
+            return "ERROR: Unable to read " + filename;
+        }
+    }
+};
+
+
+const prepareDataSetTimedMode = () => {
+    return readFromDB("zones.json")
+        .then(data => {
+            console.log(data);
+            return data;
+        }).catch(error => {
+            console.log(error);
+            return error;
+        })
+}
 
 const prepareDataFromEspForClient = (data) => {
     // Extracting valves, pump, and sensor statuses
@@ -105,4 +220,4 @@ const prepareDataFromEspForClient = (data) => {
     return set;
 }
 
-module.exports = { pushStatisticsToDB, updateCurrentStateOnClientSide, prepareDataFromEspForClient };
+module.exports = { pushStatisticsToDB,getZonesStateFromDB,prepareDataSetTimedMode, prepareDataFromEspForClient,updateZonesConfigTimedSettings, getConfigForRootFromDB };

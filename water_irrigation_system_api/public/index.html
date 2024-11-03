@@ -171,20 +171,42 @@
     </form>
 </div>
 <div id="timeSettings" class="status">
-    <h3>Zone Settings by time</h3>
+    <h3>Zone Settings by Time</h3>
     <form id="timeSettingsForm">
         <!-- Zone 1 -->
-        <div class="zone" id="zone-1">
+        <div class="zoneTimedMode" id="zone1">
             <h4>Zone 1</h4>
-            <p><label for="zone1-start">Start Time:</label> <span> <input type="time" class="input-field" id="zone1-start" value="07:30" name="zone1Start" required></span></p>
-            <p><label for="zone1-end">End Time:</label> <span> <input type="time" class="input-field" id="zone1-end" value="20:30" name="zone1End" required></span></p>
+            <div class="schedules">
+<!--                <div class="schedule">-->
+<!--&lt;!&ndash;                    <p>&ndash;&gt;-->
+<!--&lt;!&ndash;                        <label for="zone1-start">Start Time:</label>&ndash;&gt;-->
+<!--&lt;!&ndash;                        <input type="time" class="input-field start" value="15:00" name="zone1Start[]" required>&ndash;&gt;-->
+<!--&lt;!&ndash;                    </p>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <p>&ndash;&gt;-->
+<!--&lt;!&ndash;                        <label for="zone1-end">End Time:</label>&ndash;&gt;-->
+<!--&lt;!&ndash;                        <input type="time" class="input-field end" value="15:00" name="zone1End[]" required>&ndash;&gt;-->
+<!--&lt;!&ndash;                    </p>&ndash;&gt;-->
+<!--                </div>-->
+            </div>
+            <button type="button" class="add-schedule" data-zone="1">Add Another Schedule</button>
         </div>
 
         <!-- Zone 2 -->
-        <div class="zone" id="zone-2">
+        <div class="zoneTimedMode" id="zone2">
             <h4>Zone 2</h4>
-            <p><label for="zone2-start">Start Time:</label> <span> <input type="time" class="input-field" id="zone2-start" value="10:00" name="zone2Start" required></span></p>
-            <p><label for="zone2-end">End Time:</label> <span> <input type="time" class="input-field" id="zone2-end" value="21:00" name="zone2End" required></span></p>
+            <div class="schedules">
+<!--                <div class="schedule">-->
+<!--&lt;!&ndash;                    <p>&ndash;&gt;-->
+<!--&lt;!&ndash;                        <label for="zone2-start">Start Time:</label>&ndash;&gt;-->
+<!--&lt;!&ndash;                        <input type="time" class="input-field start" value="15:00" name="zone2Start[]" required>&ndash;&gt;-->
+<!--&lt;!&ndash;                    </p>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <p>&ndash;&gt;-->
+<!--&lt;!&ndash;                        <label for="zone2-end">End Time:</label>&ndash;&gt;-->
+<!--&lt;!&ndash;                        <input type="time" class="input-field end" value="15:00" name="zone2End[]" required>&ndash;&gt;-->
+<!--&lt;!&ndash;                    </p>&ndash;&gt;-->
+<!--                </div>-->
+            </div>
+            <button type="button" class="add-schedule" data-zone="2">Add Another Schedule</button>
         </div>
 
         <button type="submit">Send</button>
@@ -192,6 +214,7 @@
 
     <div id="status"></div>
 </div>
+
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
 <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
 <script src="index.js"></script>
