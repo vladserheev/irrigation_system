@@ -20,9 +20,9 @@ bool Components::canTurnOnPump() {
 
     // Check the status of each valve by name
     for (const auto& valve : valves) {
-        if (valve.name == "Valve_1"){valve1Open = valve.status;}
-        if (valve.name == "Valve_2"){valve2Open = valve.status;}
-        if (valve.name == "Valve_3"){valve3Open = valve.status;}
+        if (valve.name == "valve1"){valve1Open = valve.status;}
+        if (valve.name == "valve2"){valve2Open = valve.status;}
+        if (valve.name == "valve3"){valve3Open = valve.status;}
     }
     // The pump can be turned on if both Valve1 && Valve2 are open, or any one valve is open
     //return (valve1Open && valve2Open) || (valve1Open || valve3Open);
@@ -46,9 +46,9 @@ bool Components::canCloseValves() {
 
     // Check the status of each valve by name
     for (const Valve& valve : valves) {
-        if (valve.name == "Valve_1") valve1Open = valve.status;
-        if (valve.name == "Valve_2") valve2Open = valve.status;
-        if (valve.name == "Valve_3") valve3Open = valve.status;
+        if (valve.name == "valve1") valve1Open = valve.status;
+        if (valve.name == "valve2") valve2Open = valve.status;
+        if (valve.name == "valve3") valve3Open = valve.status;
     }
     // Valves cannot be closed if the pump is running
     //return !pump.status && (!(valve1Open && valve2Open) || !(valve1Open || valve3Open));
@@ -80,7 +80,9 @@ void Components::updateComponentStateByName(std::map<String, int> pinMap, std::s
                 if(false){
                     Serial.println("Cannot close valve: Pump is running.");
                 } else {
-                    valve.digitalUpdate(pinMap, componentStatusBool);
+                    if(valve.digitalUpdate(pinMap, componentStatusBool)){
+                        Log.verbose("Components: %s updated successfully!"CR, componentName.c_str());
+                    }
                 }
             }
         }

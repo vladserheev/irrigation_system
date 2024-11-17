@@ -1,0 +1,485 @@
+{
+  "sensorsData": [
+    {
+      "date": "2024-10-31T23:00:00.000Z",
+      "temperature": 18,
+      "soilHumidity": 40,
+      "airHumidity": 60
+    },
+    {
+      "date": "2024-11-01T01:00:00.000Z",
+      "temperature": 20,
+      "soilHumidity": 42,
+      "airHumidity": 62
+    },
+    {
+      "date": "2024-11-01T03:30:00.000Z",
+      "temperature": 22.5,
+      "soilHumidity": 38,
+      "airHumidity": 58
+    },
+    {
+      "date": "2024-11-01T05:00:00.000Z",
+      "temperature": 19,
+      "soilHumidity": 37,
+      "airHumidity": 57
+    },
+    {
+      "date": "2024-11-01T07:00:00.000Z",
+      "temperature": 21,
+      "soilHumidity": 39,
+      "airHumidity": 59
+    },
+    {
+      "date": "2024-11-01T09:00:00.000Z",
+      "temperature": 23,
+      "soilHumidity": 41,
+      "airHumidity": 61
+    },
+    {
+      "date": "2024-11-01T11:00:00.000Z",
+      "temperature": 24,
+      "soilHumidity": 43,
+      "airHumidity": 63
+    },
+    {
+      "date": "2024-11-01T13:00:00.000Z",
+      "temperature": 22,
+      "soilHumidity": 44,
+      "airHumidity": 64
+    },
+    {
+      "date": "2024-11-01T15:00:00.000Z",
+      "temperature": 21,
+      "soilHumidity": 40,
+      "airHumidity": 60
+    },
+    {
+      "date": "2024-11-01T17:00:00.000Z",
+      "temperature": 20,
+      "soilHumidity": 38,
+      "airHumidity": 58
+    },
+    {
+      "date": "2024-11-01T19:00:00.000Z",
+      "temperature": 28,
+      "soilHumidity": 37,
+      "airHumidity": 57
+    },
+    {
+      "date": "2024-11-01T21:00:00.000Z",
+      "temperature": 18,
+      "soilHumidity": 36,
+      "airHumidity": 56
+    },
+    {
+      "date": "2024-11-01T22:58:00.000Z",
+      "temperature": 12,
+      "soilHumidity": 35,
+      "airHumidity": 60
+    },
+    {
+      "date": "2024-11-01T23:00:00.000Z",
+      "temperature": 19,
+      "soilHumidity": 38,
+      "airHumidity": 65
+    },
+    {
+      "date": "2024-11-02T01:00:00.000Z",
+      "temperature": 21,
+      "soilHumidity": 43,
+      "airHumidity": 65
+    },
+    {
+      "date": "2024-11-02T03:00:00.000Z",
+      "temperature": 23,
+      "soilHumidity": 39,
+      "airHumidity": 55
+    },
+    {
+      "date": "2024-11-02T05:00:00.000Z",
+      "temperature": 20,
+      "soilHumidity": 38,
+      "airHumidity": 58
+    },
+    {
+      "date": "2024-11-02T07:00:00.000Z",
+      "temperature": 22,
+      "soilHumidity": 40,
+      "airHumidity": 62
+    },
+    {
+      "date": "2024-11-02T09:00:00.000Z",
+      "temperature": 24,
+      "soilHumidity": 42,
+      "airHumidity": 62
+    },
+    {
+      "date": "2024-11-02T11:00:00.000Z",
+      "temperature": 25,
+      "soilHumidity": 44,
+      "airHumidity": 64
+    },
+    {
+      "date": "2024-11-02T13:00:00.000Z",
+      "temperature": 23,
+      "soilHumidity": 48,
+      "airHumidity": 65
+    },
+    {
+      "date": "2024-11-02T15:00:00.000Z",
+      "temperature": 28,
+      "soilHumidity": 41,
+      "airHumidity": 61
+    },
+    {
+      "date": "2024-11-02T17:00:00.000Z",
+      "temperature": 21,
+      "soilHumidity": 39,
+      "airHumidity": 59
+    },
+    {
+      "date": "2024-11-02T19:00:00.000Z",
+      "temperature": 29,
+      "soilHumidity": 31,
+      "airHumidity": 58
+    },
+    {
+      "date": "2024-11-02T21:00:00.000Z",
+      "temperature": 19,
+      "soilHumidity": 37,
+      "airHumidity": 57
+    },
+    {
+      "date": "2024-11-02T22:58:00.000Z",
+      "temperature": 19,
+      "soilHumidity": 37,
+      "airHumidity": 57
+    },
+    {
+      "date": "2024-11-03T01:00:00.000Z",
+      "temperature": 20,
+      "soilHumidity": 40,
+      "airHumidity": 60
+    },
+    {
+      "date": "2024-11-03T03:30:00.000Z",
+      "temperature": 21.5,
+      "soilHumidity": 39,
+      "airHumidity": 59
+    },
+    {
+      "date": "2024-11-03T23:00:00.000Z",
+      "temperature": 17,
+      "soilHumidity": 41,
+      "airHumidity": 64
+    },
+    {
+      "date": "2024-11-04T01:00:00.000Z",
+      "temperature": 19,
+      "soilHumidity": 42,
+      "airHumidity": 63
+    },
+    {
+      "date": "2024-11-04T03:00:00.000Z",
+      "temperature": 21,
+      "soilHumidity": 39,
+      "airHumidity": 60
+    },
+    {
+      "date": "2024-11-04T05:00:00.000Z",
+      "temperature": 20,
+      "soilHumidity": 37,
+      "airHumidity": 58
+    },
+    {
+      "date": "2024-11-04T07:00:00.000Z",
+      "temperature": 22,
+      "soilHumidity": 40,
+      "airHumidity": 62
+    },
+    {
+      "date": "2024-11-04T09:00:00.000Z",
+      "temperature": 24,
+      "soilHumidity": 43,
+      "airHumidity": 65
+    },
+    {
+      "date": "2024-11-04T11:00:00.000Z",
+      "temperature": 25,
+      "soilHumidity": 45,
+      "airHumidity": 66
+    },
+    {
+      "date": "2024-11-04T13:00:00.000Z",
+      "temperature": 23,
+      "soilHumidity": 47,
+      "airHumidity": 68
+    },
+    {
+      "date": "2024-11-04T15:00:00.000Z",
+      "temperature": 22,
+      "soilHumidity": 42,
+      "airHumidity": 63
+    },
+    {
+      "date": "2024-11-04T17:00:00.000Z",
+      "temperature": 21,
+      "soilHumidity": 40,
+      "airHumidity": 62
+    },
+    {
+      "date": "2024-11-04T19:00:00.000Z",
+      "temperature": 20,
+      "soilHumidity": 39,
+      "airHumidity": 60
+    },
+    {
+      "date": "2024-11-04T21:00:00.000Z",
+      "temperature": 18,
+      "soilHumidity": 38,
+      "airHumidity": 58
+    },
+    {
+      "date": "2024-11-05T01:00:00.000Z",
+      "temperature": 17,
+      "soilHumidity": 36,
+      "airHumidity": 57
+    },
+    {
+      "date": "2024-11-05T03:00:00.000Z",
+      "temperature": 19,
+      "soilHumidity": 37,
+      "airHumidity": 59
+    },
+    {
+      "date": "2024-11-05T05:00:00.000Z",
+      "temperature": 21,
+      "soilHumidity": 39,
+      "airHumidity": 61
+    },
+    {
+      "date": "2024-11-05T07:00:00.000Z",
+      "temperature": 23,
+      "soilHumidity": 41,
+      "airHumidity": 64
+    },
+    {
+      "date": "2024-11-05T09:00:00.000Z",
+      "temperature": 25,
+      "soilHumidity": 43,
+      "airHumidity": 65
+    },
+    {
+      "date": "2024-11-05T11:00:00.000Z",
+      "temperature": 26,
+      "soilHumidity": 44,
+      "airHumidity": 67
+    },
+    {
+      "date": "2024-11-05T13:00:00.000Z",
+      "temperature": 24,
+      "soilHumidity": 45,
+      "airHumidity": 66
+    },
+    {
+      "date": "2024-11-05T15:00:00.000Z",
+      "temperature": 22,
+      "soilHumidity": 42,
+      "airHumidity": 63
+    },
+    {
+      "date": "2024-11-05T17:00:00.000Z",
+      "temperature": 21,
+      "soilHumidity": 41,
+      "airHumidity": 62
+    },
+    {
+      "date": "2024-11-05T19:00:00.000Z",
+      "temperature": 20,
+      "soilHumidity": 40,
+      "airHumidity": 61
+    },
+    {
+      "date": "2024-11-05T21:00:00.000Z",
+      "temperature": 19,
+      "soilHumidity": 39,
+      "airHumidity": 60
+    },
+    {
+      "date": "2024-11-05T23:00:00.000Z",
+      "temperature": 18,
+      "soilHumidity": 37,
+      "airHumidity": 58
+    },
+    {
+      "date": "2024-11-06T01:00:00.000Z",
+      "temperature": 18,
+      "soilHumidity": 37,
+      "airHumidity": 58
+    },
+    {
+      "date": "2024-11-06T03:00:00.000Z",
+      "temperature": 20,
+      "soilHumidity": 39,
+      "airHumidity": 60
+    },
+    {
+      "date": "2024-11-06T05:00:00.000Z",
+      "temperature": 21,
+      "soilHumidity": 41,
+      "airHumidity": 61
+    },
+    {
+      "date": "2024-11-06T07:00:00.000Z",
+      "temperature": 22,
+      "soilHumidity": 43,
+      "airHumidity": 62
+    },
+    {
+      "date": "2024-11-06T09:00:00.000Z",
+      "temperature": 23,
+      "soilHumidity": 42,
+      "airHumidity": 63
+    },
+    {
+      "date": "2024-11-06T11:00:00.000Z",
+      "temperature": 24,
+      "soilHumidity": 40,
+      "airHumidity": 64
+    },
+    {
+      "date": "2024-11-06T13:00:00.000Z",
+      "temperature": 25,
+      "soilHumidity": 39,
+      "airHumidity": 65
+    },
+    {
+      "date": "2024-11-06T15:00:00.000Z",
+      "temperature": 26,
+      "soilHumidity": 38,
+      "airHumidity": 66
+    },
+    {
+      "date": "2024-11-06T17:00:00.000Z",
+      "temperature": 23,
+      "soilHumidity": 37,
+      "airHumidity": 62
+    },
+    {
+      "date": "2024-11-06T19:00:00.000Z",
+      "temperature": 22,
+      "soilHumidity": 36,
+      "airHumidity": 61
+    },
+    {
+      "date": "2024-11-06T21:00:00.000Z",
+      "temperature": 20,
+      "soilHumidity": 35,
+      "airHumidity": 60
+    },
+    {
+      "date": "2024-11-06T22:59:00.000Z",
+      "temperature": 19,
+      "soilHumidity": 34,
+      "airHumidity": 59
+    }
+  ],
+  "zonesWateringData": [
+    {
+      "zone": "Zone 1",
+      "start": "2024-11-01T07:31:00.000Z",
+      "end": "2024-11-01T08:47:00.000Z"
+    },
+    {
+      "zone": "Zone 2",
+      "start": "2024-11-01T09:55:00.000Z",
+      "end": "2024-11-01T11:43:00.000Z"
+    },
+    {
+      "zone": "Zone 1",
+      "start": "2024-11-01T13:22:00.000Z",
+      "end": "2024-11-01T14:33:00.000Z"
+    },
+    {
+      "zone": "Zone 2",
+      "start": "2024-11-01T15:45:00.000Z",
+      "end": "2024-11-01T17:59:00.000Z"
+    },
+    {
+      "zone": "Zone 2",
+      "start": "2024-11-01T18:11:00.000Z",
+      "end": "2024-11-01T19:57:00.000Z"
+    },
+    {
+      "zone": "Zone 2",
+      "start": "2024-11-01T20:39:00.000Z",
+      "end": "2024-11-01T21:53:00.000Z"
+    },
+    {
+      "zone": "Zone 1",
+      "start": "2024-11-02T08:45:00.000Z",
+      "end": "2024-11-02T09:59:00.000Z"
+    },
+    {
+      "zone": "Zone 2",
+      "start": "2024-11-02T10:51:00.000Z",
+      "end": "2024-11-02T11:57:00.000Z"
+    },
+    {
+      "zone": "Zone 1",
+      "start": "2024-11-02T12:25:00.000Z",
+      "end": "2024-11-02T13:59:00.000Z"
+    },
+    {
+      "zone": "Zone 2",
+      "start": "2024-11-02T14:44:00.000Z",
+      "end": "2024-11-02T16:17:00.000Z"
+    },
+    {
+      "zone": "Zone 1",
+      "start": "2024-11-03T07:10:00.000Z",
+      "end": "2024-11-03T08:25:00.000Z"
+    },
+    {
+      "zone": "Zone 2",
+      "start": "2024-11-03T09:30:00.000Z",
+      "end": "2024-11-03T10:45:00.000Z"
+    },
+    {
+      "zone": "Zone 2",
+      "start": "2024-11-03T13:05:00.000Z",
+      "end": "2024-11-03T14:12:00.000Z"
+    },
+    {
+      "zone": "Zone 1",
+      "start": "2024-11-04T08:10:00.000Z",
+      "end": "2024-11-04T09:25:00.000Z"
+    },
+    {
+      "zone": "Zone 2",
+      "start": "2024-11-04T10:35:00.000Z",
+      "end": "2024-11-04T11:45:00.000Z"
+    },
+    {
+      "zone": "Zone 1",
+      "start": "2024-11-05T07:20:00.000Z",
+      "end": "2024-11-05T08:35:00.000Z"
+    },
+    {
+      "zone": "Zone 2",
+      "start": "2024-11-05T09:45:00.000Z",
+      "end": "2024-11-05T11:00:00.000Z"
+    },
+    {
+      "zone": "Zone 1",
+      "start": "2024-11-06T07:30:00.000Z",
+      "end": "2024-11-06T08:45:00.000Z"
+    },
+    {
+      "zone": "Zone 2",
+      "start": "2024-11-06T10:00:00.000Z",
+      "end": "2024-11-06T11:15:00.000Z"
+    }
+  ]
+}

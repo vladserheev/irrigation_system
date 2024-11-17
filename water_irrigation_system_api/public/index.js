@@ -47,6 +47,7 @@ $(document).ready(function () {
         zones.zones.forEach(zone => {
             const zoneName = zone.name.toLowerCase();
             console.log(zoneName);
+            $(`#${zoneName} .schedules`).empty();
             zone.schedules.forEach(schedule => {
                 //console.log(schedule.startHour.toString())
                 const startVal = makeValidTime(schedule.startHour, schedule.startMinute);
@@ -64,6 +65,13 @@ $(document).ready(function () {
     socket.on("isConnectedToMaster", (status) => {
         console.log('Master connection status:', status);
         $('#connectionToMaster-status').text(status ? 'TRUE' : 'FALSE');
+    });
+
+    socket.on("getDataForStatistics", (data) => {
+        if(data){
+            console.log("get data for statistics", data);
+            $(window).trigger('dataReceived', [data]);
+        }
     });
 
     // Handle disconnection
@@ -120,7 +128,7 @@ $(document).ready(function () {
             )
             if(zoneSchedules){
             schedules.push({
-                name: `Zone${zoneNumber}`,
+                name: `zone${zoneNumber}`,
                 schedules: zoneSchedules
             });
             }
@@ -231,7 +239,5 @@ let makeValidTime = (hours, minutes)=>{
     //console.log(minutes);
     newHours+=hours;
     newMinutes+=minutes;
-    console.log(newHours);
-    console.log("mew time " + newHours+":"+newMinutes);
     return (newHours+":"+newMinutes);
 }

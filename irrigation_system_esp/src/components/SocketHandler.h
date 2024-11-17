@@ -4,10 +4,7 @@
 #include <Arduino.h>
 #include <SocketIOclient.h>
 #include <ArduinoLog.h>
-//#include "ModeHandler.h"
 #include "EventEmiter.h"
-
-//SocketIOclient socketIO;
 
 class SocketHandler {
     EventEmitter& eventEmitter;
@@ -24,7 +21,7 @@ public:
         : eventEmitter(eventEmitter), socketioIp(ip), socketioPort(port), socketioQuery(query) {}
 
     void initializeSocket() {
-        Log.notice("Socket initilisation");
+        Log.notice("Socket initilisation..."CR);
         socketIO.begin(socketioIp, socketioPort, socketioQuery);
         socketIO.onEvent([this](socketIOmessageType_t type, uint8_t *payload, size_t length) {
             socketIOEvent(type, payload, length);
@@ -35,6 +32,10 @@ public:
         socketIO.loop(); // Call this method in your main loop function
     }
 
+    bool isConnected(){
+        return socketIO.isConnected();
+    }
+
     void handlingSocketEvent(const String& eventName, const DynamicJsonDocument& doc) {
         if (eventName == "btnAction") {
             eventEmitter.emitEvent("button_event", doc);
@@ -42,7 +43,9 @@ public:
             Log.notice("Sensor Setting received!" CR);
         } else if (eventName == "timeSettings") {
             eventEmitter.emitEvent("timed_mode", doc);
-        } else {
+        } else if (eventName == "zonesConfig"){
+            eventEmitter.emitEvent("zonesConfig", doc);
+        }else {
             Log.warning("Unhandled socket event: %s\n", eventName.c_str());
         }
     }
@@ -56,6 +59,7 @@ public:
                 break;
             case sIOtype_CONNECT:
                 Log.notice("[IOc] Connected to url: %s\n", payload);
+                //Log.verbose("Socketio connection: %t"CR, socketIO.isConnected());
                 socketIO.send(sIOtype_CONNECT, "/");
                 sendEmit("master", "true");
                 break;

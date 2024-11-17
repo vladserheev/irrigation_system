@@ -50,6 +50,12 @@ const getZonesStateFromDB = async (filename) => {
     return readFromDB(filename);
 }
 
+const getDataForChartFromDB = async (filename) => {
+    return readFromDB(filename);
+}
+
+
+
 // const updateZonesConfigTimedSettings = (filename, newSchedulesData) => {
 //     // Read the current zones configuration
 //     return new Promise((resolve, reject) => {
@@ -220,4 +226,4 @@ const prepareDataFromEspForClient = (data) => {
     return set;
 }
 
-module.exports = { pushStatisticsToDB,getZonesStateFromDB,prepareDataSetTimedMode, prepareDataFromEspForClient,updateZonesConfigTimedSettings, getConfigForRootFromDB };
+module.exports = { pushStatisticsToDB, getDataForChartFromDB, getZonesStateFromDB,prepareDataSetTimedMode, prepareDataFromEspForClient,updateZonesConfigTimedSettings, getConfigForRootFromDB };

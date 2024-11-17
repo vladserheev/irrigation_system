@@ -1,16 +1,21 @@
-#ifndef MODENANDLER_H
+#ifndef MODEHANDLER_H
 #define MODEHANDLER_H
+
 #include <Arduino.h>
 #include <RtcDS1302.h>
 #include <vector>
+#include <queue>
+#include <string>
+#include <map>
+#include <utility>  // for std::pair
+
 #include "IEventListener.h"
 #include "Mode.h"
 #include "Valve.h"
 #include "WateringSchedule.h"
 #include "testIEventListener.h"
-#include <queue>
-#include <string> 
 
+// Struct to hold zone update details
 struct ZoneUpdate {
     String zoneName;
     bool turnOn;
@@ -25,10 +30,10 @@ class ModeHandler : public testIEventListener {
     std::map<String, int> pinMap;
     unsigned long previousMillis = 0;
     const unsigned long delayTime = 2000;
-    
 
    public:
-    ModeHandler(RtcDS1302<ThreeWire> &rtcRef, Root &rootRef, std::map<String, int> pinMap) : rtc(rtcRef), root(rootRef), pinMap(pinMap) {}
+    ModeHandler(RtcDS1302<ThreeWire> &rtcRef, Root &rootRef, std::map<String, int> pinMap)
+        : rtc(rtcRef), root(rootRef), pinMap(pinMap) {}
 
     void onEvent(const std::string &event) override {
         Log.notice("Modehandler: New event: %s" CR, event.c_str());
@@ -45,7 +50,18 @@ class ModeHandler : public testIEventListener {
 
     void onTimedMode(const std::string &event, DynamicJsonDocument doc) override {
         Log.notice("ModeHandler: Time settings event!" CR);
-        addNewTimeSettingsToZones(doc);
+        updateTimeSettings(doc);
+    }
+
+    void onZonesConfig(const std::string &event, DynamicJsonDocument doc) override {
+        Log.notice("ModeHandler: Zones config event!" CR);
+        if (doc[1]["zones"].is<JsonArray>()) {
+            for (const auto &zoneJson : doc[1]["zones"].as<JsonArray>()) {
+                configureZone(zoneJson);
+            }
+        } else {
+            Log.error("ModeHandler: Zones config is not a JSON array!" CR);
+        }
     }
 
     void addZone(String zoneName, Valve valve, bool status) {
@@ -53,10 +69,13 @@ class ModeHandler : public testIEventListener {
     }
 
     void setTimedModeForZone(String zoneName, uint8_t startHour, uint8_t startMinute, uint8_t finishHour, uint8_t finishMinute) {
-        Log.notice("ModeHandler: setTimedModeForZone:" CR);
+        Log.verbose("Setting timed mode for zone: %s"CR, zoneName);
         for (auto &zone : zones) {
             if (zone.name == zoneName) {
+                //zone.mode = TIMED;
+                setModeForZone(zoneName, TIMED);
                 zone.addSchedule(startHour, startMinute, finishHour, finishMinute);
+                zone.print();
                 break;
             }
         }
@@ -71,59 +90,33 @@ class ModeHandler : public testIEventListener {
         }
     }
 
-    void addRoot(Root &rootref) { root = rootref; }
+    void clearZoneSchedule(String zoneName) {
+        for (auto &zone : zones) {
+            if (zone.name == zoneName) {
+                zone.schedules.clear();
+                break;
+            }
+        }
+    }
 
     void runMode() {
         for (auto &zone : zones) {
             switch (zone.mode) {
-                case MANUAL:
-                    runManualMode(zone);
-                    break;
-                case SENSOR:
-                    runSensorMode(zone);
-                    break;
-                case TIMED:
-                    runTimedMode(zone);
-                    break;
+                case MANUAL: runManualMode(zone); break;
+                case SENSOR: runSensorMode(zone); break;
+                case TIMED: runTimedMode(zone); break;
             }
         }
     }
 
     void processQueue() {
-          if (!zoneUpdateQueue.empty()) {
-              auto currentPair = zoneUpdateQueue.front();  // Получаем первую зону и статус в очереди
-              Zone* currentZone = currentPair.first;
-              std::string status = currentPair.second;
+        if (zoneUpdateQueue.empty()) return;
 
-              bool turnOn = (status == "ON");  // Определяем, включить или выключить
-              Log.notice("ProccesQueue: Zone: Current state: ");
-              Serial.print(currentZone->currentState);
-              Serial.println("");
-              updateZoneState(*currentZone, turnOn);  // Обновляем состояние зоны
-
-              if (currentZone->currentState == IDLE || currentZone->currentState == RUNNING) {
-                  Log.notice("ProccesQueue: Zone: %s deleted from queue with status: ", currentZone->name);
-                  Serial.print(currentZone->currentState);  
-                  Serial.print("");
-                  zoneUpdateQueue.pop();  // Удаляем зону из очереди, когда процесс завершён
-              }
-          }
-    }
-
-    void addNewTimeSettingsToZones(DynamicJsonDocument doc) {
-        if (doc[1]["zones"].is<JsonArray>()) {
-            JsonArray zonesArray = doc[1]["zones"].as<JsonArray>();
-            for (const auto &zoneJson : zonesArray) {
-                String zoneName = zoneJson["name"];
-                setModeForZone(zoneName, TIMED);
-                uint8_t startHour = zoneJson["startHour"];
-                uint8_t startMinute = zoneJson["startMinute"];
-                uint8_t finishHour = zoneJson["finishHour"];
-                uint8_t finishMinute = zoneJson["finishMinute"];
-                setTimedModeForZone(zoneName, startHour, startMinute, finishHour, finishMinute);
-            }
-        } else {
-            Serial.println("Zone data is not an array.");
+        auto [currentZone, status] = zoneUpdateQueue.front();
+        updateZoneState(*currentZone, status == "ON");
+        
+        if (currentZone->currentState == IDLE || currentZone->currentState == RUNNING) {
+            zoneUpdateQueue.pop();
         }
     }
 
@@ -134,179 +127,174 @@ class ModeHandler : public testIEventListener {
     }
 
    private:
+    void configureZone(const JsonObject& zoneJson) {
+        String zoneName = zoneJson["name"];
+        if (zoneJson["mode"] == "TIMED") {
+            for (const auto &schedule : zoneJson["schedules"].as<JsonArray>()) {
+                setTimedModeForZone(zoneName, schedule["startHour"], schedule["startMinute"], schedule["finishHour"], schedule["finishMinute"]);
+            }
+        }
+    }
+
+    void updateTimeSettings(DynamicJsonDocument& doc) {
+    if (doc[1]["zones"].is<JsonArray>()) {
+        JsonArray zonesArray = doc[1]["zones"].as<JsonArray>();
+        
+        for (const auto &zoneJson : zonesArray) {
+            String zoneName = zoneJson["name"].as<String>();
+            setModeForZone(zoneName, TIMED);
+            Log.verbose("ModeHandler: timeSetting: zone name: %s"CR, zoneName);
+
+            // Make sure to clear the schedule before adding new times
+            clearZoneSchedule(zoneName);
+
+            if (zoneJson["schedules"].is<JsonArray>()) {
+                JsonArray schedules = zoneJson["schedules"].as<JsonArray>();
+
+                for (const auto &schedule : schedules) {
+                    // Add checks to confirm these values exist before accessing
+                    if (schedule.containsKey("startHour") && schedule.containsKey("startMinute") &&
+                        schedule.containsKey("finishHour") && schedule.containsKey("finishMinute")) {
+                        
+                        uint8_t startHour = schedule["startHour"].as<uint8_t>();
+                        uint8_t startMinute = schedule["startMinute"].as<uint8_t>();
+                        uint8_t finishHour = schedule["finishHour"].as<uint8_t>();
+                        uint8_t finishMinute = schedule["finishMinute"].as<uint8_t>();
+
+                        setTimedModeForZone(zoneName, startHour, startMinute, finishHour, finishMinute);
+                    } else {
+                        Log.error("ModeHandler: Schedule data is incomplete for zone %s!" CR, zoneName.c_str());
+                    }
+                }
+            } else {
+                Log.error("ModeHandler: 'schedules' is not a JsonArray for zone %s!" CR, zoneName.c_str());
+            }
+        }
+    } else {
+        Log.error("ModeHandler: Zone data is not an array!" CR);
+    }
+}
+
+
     void runManualMode(Zone &zone) {
         Serial.print("Manual mode for ");
         Serial.println(zone.name);
+        zone.print();
     }
 
     void runSensorMode(Zone &zone) {
-        Serial.print("Sensor mode for");
+        Serial.print("Sensor mode for ");
         Serial.println(zone.name);
     }
 
     void runTimedMode(Zone &zone) {
         Log.notice("Timed mode for %s" CR, zone.name.c_str());
+        zone.print();
+        bool isNeedToUpdate;
+        // bool updatedValue;
         RtcDateTime now = rtc.GetDateTime();
-        Log.notice("Current RTC time: %s" CR, getRtcDateTimeString(now).c_str());
-        
-        bool shouldTurnOn = false;
         uint16_t currentTimeInMinutes = now.Hour() * 60 + now.Minute();
 
-        for (auto &schedule : zone.schedules) {
-            uint16_t startTimeInMinutes = schedule.startHour * 60 + schedule.startMinute;
-            uint16_t endTimeInMinutes = schedule.finishHour * 60 + schedule.finishMinute;
-
-            // Проверяем, попадает ли текущее время в любое расписание
-            if (currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes) {
-                shouldTurnOn = true;
-                break;  // Если хотя бы одно расписание активно, выходим из цикла
+        for (const auto &schedule : zone.schedules) {
+            Log.verbose("Time mode: time in not in range"CR);
+            if (isTimeInRange(currentTimeInMinutes, schedule.startHour * 60 + schedule.startMinute, schedule.finishHour * 60 + schedule.finishMinute)) {
+                Log.verbose("Time mode: time in range"CR);
+                if (!root.system.components.getValveStatusByName(zone.valve.name.c_str())) {
+                    Log.verbose("Time mode: activating zone"CR);
+                    isNeedToUpdate=true;
+                    scheduleZoneUpdate(zone, "ON");
+                }
+                return;
             }
         }
 
-        String componentName = zone.valve.name.c_str();
-        bool isValveOn = root.system.components.getValveStatusByName(componentName.c_str());
-
-        if (shouldTurnOn) {
-            if (!isValveOn) {  // Включаем, если клапан ещё не активен
-                Log.notice("Watering zone %s - Valve ON" CR, zone.name.c_str());
-                scheduleZoneUpdate(zone, "ON");
-            } else {
-                Log.notice("Watering zone %s is already open!" CR, zone.name.c_str());
-            }
-        } else {
-            if (isValveOn) {  // Отключаем, если клапан ещё включен
-                Log.notice("Zone: %s - Valve OFF" CR, zone.name.c_str());
-                scheduleZoneUpdate(zone, "OFF");
-            } else {
-                Log.notice("Watering zone %s is already closed!" CR, zone.name.c_str());
-            }
+        if (root.system.components.getValveStatusByName(zone.valve.name.c_str())) {
+            isNeedToUpdate=false;
+            scheduleZoneUpdate(zone, "OFF");
         }
+        
+        if(!isNeedToUpdate){ Log.notice("Time mode: Zone: %s do not need to update"CR, zone.name.c_str());};
+    }
+
+    bool isTimeInRange(uint16_t current, uint16_t start, uint16_t end) const {
+        return current >= start && current < end;
     }
 
     void updateZoneState(Zone &zone, bool turnOn) {
-        unsigned long currentMillis = millis();
+        //Log.verbose("Time mode: Started activating... zone!"CR);
         if (!isDelayOver()) return;
+
+        unsigned long currentMillis = millis();
 
         switch (zone.currentState) {
             case IDLE:
-                if (turnOn) {
-                    Log.notice("Preparing to start zone %s" CR, zone.name.c_str());
-                    root.system.components.print();
-                    zone.currentState = STARTING_MAIN_VALVE; // Переход к включению valve_main
-                    previousMillis = currentMillis;
-                }
+                if (turnOn) transitionState(zone, STARTING_MAIN_VALVE, currentMillis);
                 break;
-
             case STARTING_MAIN_VALVE:
-                //if(!isDelayOver()) return
-                Log.notice("Starting main valve" CR);
-                root.system.components.updateComponentStateByName(pinMap, "Valve_1", "ON"); // Включение valve_main
-                zone.currentState = STARTING_ZONE; // Переход к включению zone.valve
-                previousMillis = currentMillis;
+                root.system.components.updateComponentStateByName(pinMap, "valve1", "ON");
+                transitionState(zone, STARTING_ZONE, currentMillis);
                 break;
-
             case STARTING_ZONE:
-                //if(!isDelayOver()) return
-                Log.notice("Starting zone %s" CR, zone.name.c_str());
-                root.system.components.updateComponentStateByName(pinMap, zone.valve.name.c_str(), "ON"); // Включение zone.valve
-                zone.currentState = STARTING_PUMP; // Переход к включению насоса
-                previousMillis = currentMillis;
-            
+                root.system.components.updateComponentStateByName(pinMap, zone.valve.name.c_str(), "ON");
+                transitionState(zone, STARTING_PUMP, currentMillis);
                 break;
-
             case STARTING_PUMP:
-                //if(!isDelayOver()) return
-                Log.notice("Starting main pump" CR);
-                root.system.components.updateComponentStateByName(pinMap, "Pump", "ON"); // Включение насоса
-                zone.currentState = RUNNING; // Переход к RUNNING
-                previousMillis = currentMillis;
+                root.system.components.updateComponentStateByName(pinMap, "pump", "ON");
+                zone.currentState = RUNNING;
                 break;
-
             case RUNNING:
-                if (!turnOn) {
-                    Log.notice("Preparing to stop zone %s" CR, zone.name.c_str());
-                    zone.currentState = STOPPING_PUMP; // Переход к выключению насоса
-                    previousMillis = currentMillis;
-                }
+                if (!turnOn) transitionState(zone, STOPPING_PUMP, currentMillis);
                 break;
-
             case STOPPING_PUMP:
-                //if(!isDelayOver()) return
-                Log.notice("Stopping pump: isAnyZoneRunning: %t" CR, isAnyZoneRunning());
-                if (!isAnyZoneRunning()) {
-                    Log.notice("Stopping main pump" CR);
-                    root.system.components.updateComponentStateByName(pinMap, "Pump", "OFF"); // Выключение насоса
-                    zone.currentState = STOPPING_ZONE; // Переход к выключению zone.valve
-                    previousMillis = currentMillis;
-                } else {
-                    zone.currentState = STOPPING_ZONE;
-                }
+                if (!isAnyZoneRunning()) root.system.components.updateComponentStateByName(pinMap, "pump", "OFF");
+                transitionState(zone, STOPPING_ZONE, currentMillis);
                 break;
-
             case STOPPING_ZONE:
-                //if(!isDelayOver()) return
-                Log.notice("Stopping zone %s" CR, zone.name.c_str());
-                root.system.components.updateComponentStateByName(pinMap, zone.valve.name.c_str(), "OFF"); // Выключение zone.valve
-                zone.currentState = STOPPING_MAIN_VALVE; // Переход к выключению valve_main
-                previousMillis = currentMillis;
+                root.system.components.updateComponentStateByName(pinMap, zone.valve.name.c_str(), "OFF");
+                transitionState(zone, STOPPING_MAIN_VALVE, currentMillis);
                 break;
-
             case STOPPING_MAIN_VALVE:
-                //if(!isDelayOver()) return
-                if(!isAnyZoneRunning()){
-                    Log.notice("Stopping main valve" CR);
-                    root.system.components.updateComponentStateByName(pinMap, "Valve_1", "OFF"); // Выключение valve_main
-                    zone.currentState = IDLE; // Переход к IDLE
-                }else{
-                    zone.currentState = IDLE;
-                }
+                if (!isAnyZoneRunning()) root.system.components.updateComponentStateByName(pinMap, "valve1", "OFF");
+                zone.currentState = IDLE;
                 break;
         }
+    }
+
+    void transitionState(Zone &zone, ZoneState newState, unsigned long currentMillis) {
+        zone.currentState = newState;
+        previousMillis = currentMillis;
     }
 
     void scheduleZoneUpdate(Zone &zone, std::string status) {
-        Log.notice("ModeHandler: Zone: %s has added to queue"CR, zone.name);
-        zoneUpdateQueue.push(std::make_pair(&zone, status)) ;
-        Serial.println(zoneUpdateQueue.size()); // Добавляем зону в очередь на обработку
+        zoneUpdateQueue.push(std::make_pair(&zone, status));
+        Log.verbose("ModeHandler: Zone %s added to queue with status %s" CR, zone.name.c_str(), status.c_str());
     }
 
-    String getRtcDateTimeString(RtcDateTime now) {
-        String dateTimeStr = String(now.Hour()) + ":" + String(now.Minute()) + ":" + String(now.Second());
-        return dateTimeStr;
-    }
-
-    void setZonesMode(Mode mode){
+    void setZonesMode(Mode mode) {
         for (auto &zone : zones) {
             zone.mode = mode;
         }
-        Log.notice("ModeHandler: ButtonAction: setted MANUAL mode to all zones!"CR);
+        Log.verbose("ModeHandler: Set all zones to MANUAL mode!" CR);
     }
 
-    void setModeToAllValves(ZoneState zoneState){
+    void setModeToAllValves(ZoneState state) {
         for (auto &zone : zones) {
-            zone.currentState = zoneState;
+            zone.currentState = state;
         }
-        Log.notice("ModeHandler: ButtonAction: setted IDLE state to all valves!"CR);
-    }
-    
-    bool isAnyZoneRunning() {
-        for (const auto &zone : zones) {
-            if (zone.currentState == RUNNING) {
-                Log.notice("Exist one active zone!");
-                return true; // Нашли активную зону
-            }
-        }
-        return false; // Нет активных зон
+        Log.verbose("ModeHandler: Set all valves to IDLE state!" CR);
     }
 
-    bool isDelayOver() {
-        unsigned long currentMillis = millis();
-        if (currentMillis - previousMillis >= delayTime) {
-            previousMillis = currentMillis;  // Обновляем предыдущую отметку времени
-            return true;
+    bool isAnyZoneRunning() const {
+        for (const auto &zone : zones) {
+            if (zone.currentState == RUNNING) return true;
+       
         }
         return false;
     }
+
+    bool isDelayOver() const {
+        return millis() - previousMillis >= delayTime;
+    }
 };
 
-#endif
+#endif  // MODEHANDLER_H

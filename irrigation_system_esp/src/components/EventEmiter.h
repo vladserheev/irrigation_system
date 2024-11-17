@@ -22,6 +22,10 @@ public:
             for (testIEventListener* listener : listeners) {
                 listener->onTimedMode(event, doc);
             }
+        }else if(event == "zonesConfig"){
+            for (testIEventListener* listener : listeners) {
+                listener->onZonesConfig(event, doc);
+            }
         }
     }
 };

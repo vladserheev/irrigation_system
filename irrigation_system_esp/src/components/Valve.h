@@ -15,7 +15,7 @@ public:
 
     Valve(int id, const std::string& name, bool status, const std::string& location);
     void print() const;
-    void digitalUpdate(std::map<String, int> pinMap, bool statusValve);
+    bool digitalUpdate(std::map<String, int> pinMap, bool statusValve);
     JsonDocument toJson();
 };
 

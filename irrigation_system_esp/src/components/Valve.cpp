@@ -10,14 +10,21 @@ void Valve::print() const {
     Serial.print("Location: "); Serial.println(location.c_str());
 }
 
-void Valve::digitalUpdate(std::map<String, int> pinMap, bool statusValve ) {
-    if (pinMap.find(name.c_str()) != pinMap.end()) {
-        int pin = pinMap[name.c_str()];
-        ::digitalWrite(pin, statusValve ? HIGH : LOW);
-        status = statusValve;
-        Serial.println(" Valve tatus updated");
-    } else {
-        Serial.println("Pin not found for valve!");
+bool Valve::digitalUpdate(std::map<String, int> pinMap, bool statusValve ) {
+    try{
+        if (pinMap.find(name.c_str()) != pinMap.end()) {
+            int pin = pinMap[name.c_str()];
+            ::digitalWrite(pin, statusValve ? HIGH : LOW);
+            status = statusValve;
+            //Serial.println(" Valve status updated");
+            return true;
+        } else {
+            Serial.println("Pin not found for valve!");
+            throw "Pin not found for valve!";
+        }
+    }catch(String e){
+        Serial.print(e);
+        return false;
     }
 }
 

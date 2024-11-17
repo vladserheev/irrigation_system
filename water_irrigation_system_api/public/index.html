@@ -5,91 +5,8 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Control the system</title>
-    <style>
-        /* Add styles for the navbar */
-        nav {
-            margin: 20px 0;
-        }
-
-        nav button.active {
-            background-color: #cccccc; /* Darker blue for active tab */
-        }
-
-        .status {
-            padding: 10px;
-            border: 1px solid #ccc;
-            margin-bottom: 10px;
-            width: 35%; /* Set a width for the container */
-            margin: 20px; /* Add some margin for aesthetics */
-            display: none; /* Initially hide all sections */
-        }
-
-        .status p, .input-field{
-            display: flex; /* Use flexbox to align items in a row */
-            justify-content: space-between; /* Space between label and button */
-            align-items: center; /* Center the items vertically */
-            margin: 10px 0; /* Space between each item */
-        }
-
-        .toggledButton{
-            padding: 5px 10px; /* Button padding */
-            font-size: 12px; /* Button font size */
-            cursor: pointer; /* Change cursor on hover */
-        }
-
-        .zone {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        input[type="number"] {
-            width: calc(100% - 10px);
-            padding: 5px;
-            margin-bottom: 15px;
-        }
-
-        .input-field {
-            margin-left: 1em;
-            margin-bottom: .5em;
-        }
-
-        /* Flexbox for column layout */
-        .toggledButton {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 10px; /* Space between the time inputs */
-        }
-
-        label {
-            margin-bottom: 5px; /* Space between label and input */
-        }
-
-        /* Optional: Center-align text */
-        form h3 {
-            text-align: left; /* Change to center if you prefer */
-            margin-bottom: 10px;
-        }
-
-        form button {
-            cursor: pointer;
-        }
-
-        #status {
-            margin-top: 20px;
-            color: green; /* Optional: Color for success messages */
-        }
-
-
-        @media only screen and (max-width: 600px) {
-            .status, #settingsForm {
-                width: 80%;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="statisticsStyle.css">
 </head>
 <body>
 <h2>Control the system</h2>
@@ -102,15 +19,16 @@
     <button class="nav-button" data-target="#CurrentState">Current State</button>
     <button class="nav-button" data-target="#manualSettings">Manual Settings</button>
     <button class="nav-button" data-target="#timeSettings">Settings by time</button>
+    <button class="nav-button" data-target="#statistics">Statistics</button>
 </nav>
 
 <!-- Direct Control Section -->
 <div id="directControl" class="status">
     <h3>Direct control</h3>
-    <p>Pump <span><button class="toggledButton" id="Pump">OFF</button></span></p>
-    <p>Valve main <span><button class="toggledButton" id="Valve_1">OFF</button></span></p>
-    <p>Valve zone 1 <span><button class="toggledButton" id="Valve_2">OFF</button></span></p>
-    <p>Valve zone 2 <span><button class="toggledButton" id="Valve_3">OFF</button></span></p>
+    <p>Pump <span><button class="toggledButton" id="pump">OFF</button></span></p>
+    <p>Valve main <span><button class="toggledButton" id="valve1">OFF</button></span></p>
+    <p>Valve zone 1 <span><button class="toggledButton" id="valve2">OFF</button></span></p>
+    <p>Valve zone 2 <span><button class="toggledButton" id="valve3">OFF</button></span></p>
     <p>Power <span><button class="toggledButton" id="powerBtn">OFF</button></span></p>
 </div>
 
@@ -118,22 +36,12 @@
 <div id="CurrentState" class="status">
     <h3>Valves Status</h3>
     <div class="components"></div>
-    <!--    <p><span></Pump Status: <span id="pump-status">Unknown</span></p>-->
-    <!--    <p>Valve 1: <span id="valve1-status">Unknown</span></p>-->
-    <!--    <p>Valve 2: <span id="valve2-status">Unknown</span></p>-->
-    <!--    <p>Valve 3: <span id="valve3-status">Unknown</span></p>-->
-
     <h3>Sensor Data</h3>
     <div class="sensors"></div>
-    <!--    <p>Soil Moisture Sensor 1: <span id="soilMoisture1">Unknown</span></p>-->
-    <!--    <p>Soil Moisture Sensor 2: <span id="soilMoisture2">Unknown</span></p>-->
-    <!--    <p>Temperature Sensor: <span id="temperature">Unknown</span></p>-->
-    <!--    <p>Water Level Sensor: <span id="waterLevel">Unknown</span></p>-->
-    <!--    <p>Air Humidity Sensor: <span id="airHumidity">Unknown</span></p>-->
 </div>
 
 
-<!-- Manual Settings Section -->
+<!-- Sensors Settings Section -->
 <div id="manualSettings" class="status">
     <h3>Manual Settings</h3>
     <form id="manualSettingsForm">
@@ -170,42 +78,22 @@
         <input type="submit" value="Send">
     </form>
 </div>
+
+<!-- Timed Settings Section -->
 <div id="timeSettings" class="status">
     <h3>Zone Settings by Time</h3>
     <form id="timeSettingsForm">
         <!-- Zone 1 -->
         <div class="zoneTimedMode" id="zone1">
             <h4>Zone 1</h4>
-            <div class="schedules">
-<!--                <div class="schedule">-->
-<!--&lt;!&ndash;                    <p>&ndash;&gt;-->
-<!--&lt;!&ndash;                        <label for="zone1-start">Start Time:</label>&ndash;&gt;-->
-<!--&lt;!&ndash;                        <input type="time" class="input-field start" value="15:00" name="zone1Start[]" required>&ndash;&gt;-->
-<!--&lt;!&ndash;                    </p>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <p>&ndash;&gt;-->
-<!--&lt;!&ndash;                        <label for="zone1-end">End Time:</label>&ndash;&gt;-->
-<!--&lt;!&ndash;                        <input type="time" class="input-field end" value="15:00" name="zone1End[]" required>&ndash;&gt;-->
-<!--&lt;!&ndash;                    </p>&ndash;&gt;-->
-<!--                </div>-->
-            </div>
+            <div class="schedules"></div>
             <button type="button" class="add-schedule" data-zone="1">Add Another Schedule</button>
         </div>
 
         <!-- Zone 2 -->
         <div class="zoneTimedMode" id="zone2">
             <h4>Zone 2</h4>
-            <div class="schedules">
-<!--                <div class="schedule">-->
-<!--&lt;!&ndash;                    <p>&ndash;&gt;-->
-<!--&lt;!&ndash;                        <label for="zone2-start">Start Time:</label>&ndash;&gt;-->
-<!--&lt;!&ndash;                        <input type="time" class="input-field start" value="15:00" name="zone2Start[]" required>&ndash;&gt;-->
-<!--&lt;!&ndash;                    </p>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <p>&ndash;&gt;-->
-<!--&lt;!&ndash;                        <label for="zone2-end">End Time:</label>&ndash;&gt;-->
-<!--&lt;!&ndash;                        <input type="time" class="input-field end" value="15:00" name="zone2End[]" required>&ndash;&gt;-->
-<!--&lt;!&ndash;                    </p>&ndash;&gt;-->
-<!--                </div>-->
-            </div>
+            <div class="schedules"></div>
             <button type="button" class="add-schedule" data-zone="2">Add Another Schedule</button>
         </div>
 
@@ -215,8 +103,18 @@
     <div id="status"></div>
 </div>
 
+
+<!-- Statistics Section -->
+<div id="statistics" class="status">
+    <div id="chart"></div>
+    <span style="margin-left: 30px"><button id="dateMinusDay" value="-">< </button><input value="2024-11-02" style="margin:0 5px 0 5px" type="date" name="dateRangeInput" id="dateRangeInput"><button id="datePlusDay" value="+"> ></button></span>
+    <div id="tooltip" class="tooltip"></div>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
 <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
 <script src="index.js"></script>
+<script src="statistics.js"></script>
 </body>
 </html>

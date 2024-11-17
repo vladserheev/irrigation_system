@@ -4,7 +4,7 @@ const { createServer } = require('node:http');
 const { join } = require('node:path');
 const { Server } = require('socket.io');
 const { log } = require('./utils/logger');
-const { pushStatisticsToDB,prepareDataSetTimedMode, getConfigForRootFromDB, updateZonesConfigTimedSettings, getZonesStateFromDB, updateCurrentStateOnClientSide, prepareDataFromEspForClient } = require('./src/core');
+const { pushStatisticsToDB,prepareDataSetTimedMode, getConfigForRootFromDB,getDataForChartFromDB, updateZonesConfigTimedSettings, getZonesStateFromDB, updateCurrentStateOnClientSide, prepareDataFromEspForClient } = require('./src/core');
 const app = express();
 const server = createServer(app);
 //const io = new Server(server);
@@ -37,27 +37,7 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html')); // Change 'src' to 'public'
 });
-
-// io.use((socket, next) => {
-//     const role = socket.handshake.query.role;
-//     if (role === 'master') {
-//         // Handle master connection
-//         log("INFO", `Master connected with ID: ${socket.id}`);
-//         masterID = socket.id;
-//         isConnectedToMaster = true;
-//         socket.to('clients').emit("isConnectedToMaster", true);  // Notify clients that master is connected
-//         next();
-//     } else if (role === 'client') {
-//         // Handle client connection
-//         log("INFO", `Client connected with ID: ${socket.id}`);
-//         socket.join('clients');
-//         next();
-//     }
-// });
-
 io.on('connection', (socket) => {
-    
-
     socket.on('btnAction', (arg, callback) => {
         log("INFO", arg.btnName + " " + arg.action);
         if(isConnectedToMaster) {
@@ -73,14 +53,6 @@ io.on('connection', (socket) => {
         socket.join('clients');
         console.log(socket.rooms);
 
-        // getConfigForRootFromDB("configForRoot.json")
-        //     .then(configRoot => {
-        //         console.log("Config Root:", configRoot);})
-        //     .catch(error => {
-        //         console.error(error);
-        //     });
-
-
         io.to("clients").emit("isConnectedToMaster", isConnectedToMaster);
 
         getZonesStateFromDB("zones.json")
@@ -91,7 +63,14 @@ io.on('connection', (socket) => {
                     console.error(error);
                 }
             );
-
+        getDataForChartFromDB("dataForChart.json")
+            .then(dataForChart => {
+                console.log("Date for chart:", dataForChart);
+                io.to("clients").emit("getDataForStatistics", dataForChart)})
+            .catch(error => {
+                    console.error(error);
+                }
+            );
     });
 
     socket.on("master", (args, callback) => {
@@ -181,101 +160,12 @@ app.post('/api/manualSettingsForm', (req, res) => {
     }
 });
 
-// app.post('/api/timeSettingsForm',  (req, res) => {
-//     const body = req.body;
-//     log("INFO", "Got Time Settings Form");
-//     log("INFO", body);
-//     log("info", "updatingZones");
-//
-//     // const data = {
-//     //     zones: [
-//     //         {
-//     //             name: "Zone 1",
-//     //             startHour: parseInt(body.zone1Start.split(":")[0]),
-//     //             startMinute: parseInt(body.zone1Start.split(":")[1]),
-//     //             finishHour: parseInt(body.zone1End.split(":")[0]),
-//     //             finishMinute: parseInt(body.zone1End.split(":")[1])
-//     //         },
-//     //         {
-//     //             name: "Zone 2",
-//     //             startHour: parseInt(body.zone2Start.split(":")[0]),
-//     //             startMinute: parseInt(body.zone2Start.split(":")[1]),
-//     //             finishHour: parseInt(body.zone2End.split(":")[0]),
-//     //             finishMinute: parseInt(body.zone2End.split(":")[1])
-//     //         }
-//     //     ]
-//     // };
-//
-//     const newSchedulesData = {
-//         zones: [
-//             {
-//                 name: "Zone 1",
-//                 schedules: [
-//                     { startHour: 7, startMinute: 30, finishHour: 8, finishMinute: 0 },
-//                     { startHour: 19, startMinute: 0, finishHour: 19, finishMinute: 30 }
-//                 ]
-//             },
-//             {
-//                 name: "Zone 2",
-//                 schedules: [
-//                     { startHour: 16, startMinute: 0, finishHour: 6, finishMinute: 45 }
-//                 ]
-//             }
-//         ]
-//     };
-//
-//     try {
-//         updateZonesConfigTimedSettings('zones.json', newSchedulesData)
-//             .then(res.status(200).send({ message: 'Zones configuration updated successfully.' })
-//         );
-//     } catch (error) {
-//         res.status(500).send({ error: 'Failed to update zones configuration.' });
-//     }
-//     // updateZonesConfigTimedSettings("zones.json", newSchedulesData)
-//     //     .then(schedulesData => {
-            // if (masterID) {
-            //     io.to(masterID).emit("timeSettings", newSchedulesData);  // Emit to the master by socket ID
-            // } else {
-            //     log("ERROR", "Master is not connected, unable to send manual settings.");
-            //     return res.status(500).send({ error: "Master is not connected." });
-            // }
-//     //     })
-//     //     .catch(error => {
-//     //         res.status(400).send({ error: "Error while updating the DB." });
-//     //     })
-//
-//
-//
-//     if (body) {
-//         res.status(200).send(newSchedulesData);
-//     } else {
-//         res.status(400).send({ error: "Invalid data." });
-//     }
-// });
-
 app.post('/api/timeSettingsForm', async (req, res) => {
     const body = req.body;
     log("INFO", "Got Time Settings Form");
     log("INFO", body);
 
     try {
-        // const newSchedulesData = {
-        //     zones: [
-        //         {
-        //             name: "Zone 1",
-        //             schedules: [
-        //                 { startHour: 7, startMinute: 30, finishHour: 8, finishMinute: 0 },
-        //                 { startHour: 19, startMinute: 0, finishHour: 19, finishMinute: 30 }
-        //             ]
-        //         },
-        //         {
-        //             name: "Zone 2",
-        //             schedules: [
-        //                 { startHour: 16, startMinute: 0, finishHour: 6, finishMinute: 45 }
-        //             ]
-        //         }
-        //     ]
-        // }; // Assuming `req.body` has the new schedule data
 
         const newSchedulesData = body;
         await updateZonesConfigTimedSettings('zones.json', newSchedulesData)

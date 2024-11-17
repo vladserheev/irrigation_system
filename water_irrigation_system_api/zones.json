@@ -1,7 +1,7 @@
 {
   "zones": [
     {
-      "name": "Zone1",
+      "name": "zone1",
       "valve": {
         "name": "Valve 1",
         "status": true
@@ -16,15 +16,21 @@
           "finishMinute": 38
         },
         {
-          "startHour": 0,
-          "startMinute": 44,
-          "finishHour": 0,
-          "finishMinute": 47
+          "startHour": 20,
+          "startMinute": 27,
+          "finishHour": 23,
+          "finishMinute": 20
+        },
+        {
+          "startHour": 19,
+          "startMinute": 50,
+          "finishHour": 19,
+          "finishMinute": 59
         }
       ]
     },
     {
-      "name": "Zone2",
+      "name": "zone2",
       "valve": {
         "name": "Valve 2",
         "status": true
@@ -35,6 +41,18 @@
         {
           "startHour": 15,
           "startMinute": 0,
+          "finishHour": 15,
+          "finishMinute": 0
+        },
+        {
+          "startHour": 15,
+          "startMinute": 0,
+          "finishHour": 22,
+          "finishMinute": 8
+        },
+        {
+          "startHour": 14,
+          "startMinute": 47,
           "finishHour": 15,
           "finishMinute": 0
         }

@@ -1,36 +1,81 @@
-.status, #settingsForm {
+/* Add styles for the navbar */
+nav {
+    margin: 20px 0;
+}
+
+nav button.active {
+    background-color: #cccccc; /* Darker blue for active tab */
+}
+
+.status {
     padding: 10px;
     border: 1px solid #ccc;
     margin-bottom: 10px;
     width: 35%; /* Set a width for the container */
     margin: 20px; /* Add some margin for aesthetics */
+    display: none; /* Initially hide all sections */
 }
 
-.status p {
+.status p, .input-field{
     display: flex; /* Use flexbox to align items in a row */
     justify-content: space-between; /* Space between label and button */
     align-items: center; /* Center the items vertically */
     margin: 10px 0; /* Space between each item */
 }
 
-.toggledButton {
+.toggledButton{
     padding: 5px 10px; /* Button padding */
     font-size: 12px; /* Button font size */
     cursor: pointer; /* Change cursor on hover */
 }
+
 .zone {
     margin-bottom: 20px;
 }
+
 label {
     display: block;
     margin-bottom: 5px;
-    font-weight: bold;
 }
+
 input[type="number"] {
     width: calc(100% - 10px);
     padding: 5px;
     margin-bottom: 15px;
 }
+
+.input-field {
+    margin-left: 1em;
+    margin-bottom: .5em;
+}
+
+/* Flexbox for column layout */
+.toggledButton {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px; /* Space between the time inputs */
+}
+
+label {
+    margin-bottom: 5px; /* Space between label and input */
+}
+
+/* Optional: Center-align text */
+form h3 {
+    text-align: left; /* Change to center if you prefer */
+    margin-bottom: 10px;
+}
+
+form button {
+    cursor: pointer;
+}
+
+#status {
+    margin-top: 20px;
+    color: green; /* Optional: Color for success messages */
+}
+
+
 @media only screen and (max-width: 600px) {
     .status, #settingsForm {
         width: 80%;
