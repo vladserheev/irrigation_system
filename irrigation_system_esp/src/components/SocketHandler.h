@@ -43,6 +43,8 @@ public:
             Log.notice("Sensor Setting received!" CR);
         } else if (eventName == "timeSettings") {
             eventEmitter.emitEvent("timed_mode", doc);
+        } else if (eventName == "manualSettings"){
+            eventEmitter.emitEvent("manual_mode", doc);
         } else if (eventName == "zonesConfig"){
             eventEmitter.emitEvent("zonesConfig", doc);
         }else {

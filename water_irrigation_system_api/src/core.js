@@ -42,6 +42,55 @@ const pushStatisticsToDB = (body, newEntry, res) => {
     });
 }
 
+const pushSensorsDataToDB = async (filename, newEntry) => {
+    console.log("new data");
+    console.log(newEntry);
+    try {
+        // Read the current zones configuration
+        const data = await fs.readFile(filename, 'utf8');
+        log('INFO', 'Current sensors data read successfully.');
+
+        let sensorsData = JSON.parse(data); // Parse the existing zones configuration
+
+        // Update only the schedules for each zone based on new data
+        sensorsData.sensorsData.push(newEntry);
+
+        // Write the updated configuration back to the file
+        await fs.writeFile(filename, JSON.stringify(sensorsData, null, 2));
+        log('INFO', 'Zones configuration updated successfully.');
+
+        return sensorsData;
+    } catch (error) {
+        log('ERROR', `Failed to update zones configuration: ${error}`);
+        throw new Error('Zones configuration update failed');
+    }
+}
+
+const pushWateringLogDataToDB = async (filename, newEntry) => {
+    console.log("new data");
+    console.log(newEntry);
+    try {
+        // Read the current zones configuration
+        const data = await fs.readFile(filename, 'utf8');
+        log('INFO', 'Current sensors data read successfully.');
+
+        let dataFromDb = JSON.parse(data); // Parse the existing zones configuration
+
+        // Update only the schedules for each zone based on new data
+        newEntry.forEach((item) => dataFromDb.zonesWateringData.push(item));
+        //dataFromDb.zonesWateringData.push(newEntry);
+
+        // Write the updated configuration back to the file
+        await fs.writeFile(filename, JSON.stringify(dataFromDb, null, 2));
+        log('INFO', 'Zones configuration updated successfully.');
+
+        return dataFromDb;
+    } catch (error) {
+        log('ERROR', `Failed to update zones configuration: ${error}`);
+        throw new Error('Zones configuration update failed');
+    }
+}
+
 const getConfigForRootFromDB = async (filename) => {
     return readFromDB(filename);
 }
@@ -226,4 +275,4 @@ const prepareDataFromEspForClient = (data) => {
     return set;
 }
 
-module.exports = { pushStatisticsToDB, getDataForChartFromDB, getZonesStateFromDB,prepareDataSetTimedMode, prepareDataFromEspForClient,updateZonesConfigTimedSettings, getConfigForRootFromDB };
+module.exports = { pushStatisticsToDB, pushWateringLogDataToDB, pushSensorsDataToDB, getDataForChartFromDB, getZonesStateFromDB,prepareDataSetTimedMode, prepareDataFromEspForClient,updateZonesConfigTimedSettings, getConfigForRootFromDB };

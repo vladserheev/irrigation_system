@@ -1,7 +1,28 @@
 localStorage.debug = '*';
+
+let sensorsSet = {
+    DHT22Sensor: {
+        temperature:{
+            title: "Temperature",
+            units:"°C"
+        },
+        humidity:{
+            title: "Humidity",
+            units:"%"
+        }
+    },
+    SoilMoistureSensor: {
+        title: "Soil Moisture",
+        units:"%"
+    }
+}
+
 $(document).ready(function () {
     // Initially show the Direct Control section
     $('#directControl').show();
+    //alert();
+    $("#dateRangeInput").val(new Date().toISOString().substring(0, 10));
+
     $('.status').not('#directControl').hide();
 
     // Add click event to navigation buttons
@@ -93,18 +114,51 @@ $(document).ready(function () {
 
     // Handle form submissions
     $("#manualSettingsForm").submit((event) => {
-        event.preventDefault();
-        const data = $(event.currentTarget).serialize();
-        if (manualSettingsFormValidate(data)) {
+        event.preventDefault(); // Prevent default form submission
+
+        console.log("Form submission event:", event);
+
+        // Convert form data to an object instead of a serialized string
+        const formDataArray = $(event.currentTarget).serializeArray();
+        const formDataObject = {};
+        formDataArray.forEach(field => {
+            formDataObject[field.name] = field.value;
+        });
+        console.log("Form data as object:", formDataObject);
+
+        // Construct the dataToSend object
+        let dataToSend = {
+            zones: [
+                {
+                    name: "zone1",
+                    settings: formDataObject // Send as an object
+                }
+            ]
+        };
+        console.log("Data to send:", dataToSend);
+
+        // Validate the object data
+        if (manualSettingsFormValidate(formDataObject)) {
+            // Send AJAX request
             $.ajax({
                 type: "POST",
                 url: "/api/manualSettingsForm",
-                data: data,
-                success: (response) => console.log("Server response:", response),
-                error: (xhr, status, error) => alert(`Error: ${status} - ${error}`)
+                data: JSON.stringify(dataToSend), // Serialize data as JSON
+                contentType: "application/json", // Ensure server knows we are sending JSON
+                success: (response) => {
+                    console.log("Server response:", response);
+                },
+                error: (xhr, status, error) => {
+                    console.error("AJAX error:", status, error);
+                    alert(`Error: ${status} - ${error}`);
+                }
             });
+        } else {
+            console.warn("Form validation failed.");
         }
     });
+
+
 
     $("#timeSettingsForm").submit((event) => {
         event.preventDefault();
@@ -132,6 +186,7 @@ $(document).ready(function () {
                 schedules: zoneSchedules
             });
             }
+
             zoneNumber++;
         });
         console.log(schedules);
@@ -200,7 +255,13 @@ function updateUI(data) {
     //console.log($('#Valve_3'));
     // Update sensors
     sensors.forEach((sensor) => {
-        $(".sensors").append(`<p>${sensor.name}: <span>${sensor.value} ${sensor.unit}</span></p>`);
+        if(sensor.sensorName==="DHT22Sensor"){
+            $(".sensors").append(`<p>${sensorsSet[sensor.sensorName].temperature.title}: <span>${sensor.tempValue} ${sensorsSet[sensor.sensorName].temperature.units}</span></p>`);
+            $(".sensors").append(`<p>${sensorsSet[sensor.sensorName].humidity.title}: <span>${sensor.humValue} ${sensorsSet[sensor.sensorName].humidity.units}</span></p>`);
+        }else{
+            $(".sensors").append(`<p>${sensorsSet[sensor.sensorName].title}: <span>${sensor.value} ${sensorsSet[sensor.sensorName].units}</span></p>`);
+        }
+
     });
 }
 

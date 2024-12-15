@@ -4,7 +4,7 @@ const { createServer } = require('node:http');
 const { join } = require('node:path');
 const { Server } = require('socket.io');
 const { log } = require('./utils/logger');
-const { pushStatisticsToDB,prepareDataSetTimedMode, getConfigForRootFromDB,getDataForChartFromDB, updateZonesConfigTimedSettings, getZonesStateFromDB, updateCurrentStateOnClientSide, prepareDataFromEspForClient } = require('./src/core');
+const { pushStatisticsToDB,prepareDataSetTimedMode,pushWateringLogDataToDB, getConfigForRootFromDB, pushSensorsDataToDB,getDataForChartFromDB, updateZonesConfigTimedSettings, getZonesStateFromDB, updateCurrentStateOnClientSide, prepareDataFromEspForClient } = require('./src/core');
 const app = express();
 const server = createServer(app);
 //const io = new Server(server);
@@ -93,8 +93,32 @@ io.on('connection', (socket) => {
         log("INFO", "Received emit with JSON from ESP");
         if (arg && arg.val) {
             try {
-                log("INFO", arg.val);
+                log("INFO", arg.val.System);
                 io.to('clients').emit('updateCurrentStateOnClientSide', arg.val);
+            } catch (e) {
+                log("ERROR", e);
+            }
+        }
+    });
+
+    socket.on('sensorsData',async (arg, callback) => {
+        log("INFO", "Received emit with Sensors data from ESP");
+        if (arg && arg.val) {
+            try {
+                log("INFO", arg.val);
+                //console.log(arg.val[2].timestamp.toISOString());
+                const date = new Date(arg.val[2].timestamp);
+                console.log(date.toISOString());
+
+                const newEntry = {
+                    "date": date.toISOString(),
+                    "temperature": arg.val[0].tempValue,
+                    "soilHumidity": arg.val[1].value,
+                    "airHumidity": arg.val[0].humValue
+                }
+                console.log(newEntry);
+                await pushSensorsDataToDB("dataForChart.json", newEntry);
+                //io.to('clients').emit('updateCurrentStateOnClientSide', arg.val);
             } catch (e) {
                 log("ERROR", e);
             }
@@ -117,6 +141,36 @@ io.on('connection', (socket) => {
     socket.on('sendCurrentState', (arg, callback) => {
         log("INFO", "Received current state!");
         socket.emit('sendCurrentState', arg);
+    });
+
+    socket.on('wateringLog',async (arg, callback) => {
+        log("INFO", "Received watering logs");
+        //socket.emit('sendCurrentState', arg);
+        log("info", arg);
+
+        if (arg && arg.val) {
+            try {
+                log("INFO", arg.val);
+                //console.log(arg.val[2].timestamp.toISOString());
+                const date = new Date(arg.val[0].timestampStart)
+                console.log(date.toISOString());
+                const newEntry=[];
+                arg.val.forEach((record) => {
+                    let validatedRecord = {
+                        "zone": record.name,
+                        "start": new Date(record.timestampStart).toISOString(),
+                        "end": new Date(record.timestampFinish).toISOString(),
+                    }
+                    newEntry.push(validatedRecord);
+                })
+
+                console.log(newEntry);
+                await pushWateringLogDataToDB("dataForChart.json", newEntry);
+                //io.to('clients').emit('updateCurrentStateOnClientSide', arg.val);
+            } catch (e) {
+                log("ERROR", e);
+            }
+        }
     });
 
     socket.on('disconnect', () => {

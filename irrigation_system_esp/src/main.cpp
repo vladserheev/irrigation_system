@@ -9,11 +9,15 @@
 #include <ThreeWire.h>
 #include <RtcDS1302.h>
 #include <ArduinoLog.h>
+#include <vector>
+#include <memory>
 
 // Include necessary component headers
 #include "components/Valve.h"
 #include "components/Pump.h"
 #include "components/Sensor.h"
+#include "components/SoilMoistureSensor.h"
+#include "components/Dht22Sensor.h"
 #include "components/Components.h"
 #include "components/System.h"
 #include "components/Root.h"
@@ -32,14 +36,27 @@
 #define VALVE2 33
 #define PUMP 4
 
+//#define DHTTYPE DHT22
+
+#define DHTPIN 15
+#define DHTTYPE DHT22
+#define SOIL_SENSOR_PIN 34
+
+
 const char* ssid = "KEFTEME";
 const char* pass = "spokospoko";
-const char* socketioIp = "192.168.1.103";
+const char* socketioIp = "192.168.1.100";
 uint16_t socketioPort = 8080;
 const char* socketioQuery = "/socket.io/?EIO=4";
 
 const long interval = 60000;
+const unsigned long halfHourInterval = 1800000;
 bool isClocksSynchronized = false;
+
+
+
+
+
 class IrrigationSystem {
 private:
     WiFiMulti wifiMulti;
@@ -50,6 +67,7 @@ private:
     ModeHandler modeHandler;
     Root root;
     unsigned long previousMillis;
+    unsigned long previousMillisHour;
     int lastState;
 
 public:
@@ -63,7 +81,7 @@ public:
               { "valve2", VALVE1 },
               { "valve3", VALVE2 }
           }),
-          previousMillis(0), lastState(0) { }
+          previousMillis(0),previousMillisHour(0), lastState(0) { }
 
     void connectWiFi() {
         wifiMulti.addAP(ssid, pass);
@@ -74,32 +92,35 @@ public:
     }
 
     Root initializeSystemComponents() {
-        std::vector<Valve> valves = {
-            Valve(1, "valve1", false, "zone 1"),
-            Valve(2, "valve2", false, "zone 2"),
-            Valve(3, "valve3", false, "zone 3")
-        };
-        Pump pump(1, "pump", false);
-        std::vector<Sensor> sensors = {
-            Sensor(1, "Temperature Sensor", 25, "°", "main"),
-            Sensor(2, "Water Level Sensor", 20, "cm", "main"),
-            Sensor(3, "Air Humidity Sensor", 60, "%", "main"),
-            Sensor(4, "Soil Humidity Sensor 1", 25, "%", "main"),
-            Sensor(5, "Soil Humidity Sensor 2", 35, "%", "main")
-        };
+    std::vector<Valve> valves = {
+        Valve(1, "valve1", false, "zone 1"),
+        Valve(2, "valve2", false, "zone 2"),
+        Valve(3, "valve3", false, "zone 3")
+    };
+    Pump pump(1, "pump", false);
 
-        Components components(valves, pump);
-        System system(0, components, sensors, MANUAL);
-        Root root(system, "2024-10-03T18:40:49.988Z");
+    Log.notice("Initialize components"CR);
 
-        // Adding zones
-        modeHandler.addZone("zone1", valves[1], false);
-        modeHandler.addZone("zone2", valves[2], false);
+    Components components(valves, pump);
+    Sensor* sensorArray[] = {
+        new DHTSensor("DHT22Sensor", DHTPIN, DHTTYPE),
+        new SoilMoistureSensor("SoilMoistureSensor", SOIL_SENSOR_PIN, 4000, 500)
+    };
 
-        return root;
-    }
+    System system(0, components, sensorArray, MANUAL, sizeof(sensorArray) / sizeof(sensorArray[0]));
+    Root root(system, "2024-10-03T18:40:49.988Z");
+
+    system.initializeSensors();
+
+    modeHandler.addZone("zone1", valves[1], false);
+    modeHandler.addZone("zone2", valves[2], false);
+
+    return root;
+}
+
 
     
+  
     String getDateTime(RtcDateTime now) {
     // Create a String to hold the formatted date and time
       String dateTimeString = "";
@@ -131,13 +152,9 @@ public:
         Log.notice(  "******* Irrigation System Logging ********" CR);              
         Log.notice(F("******************************************" CR));
 
-        //rtc.Begin(); // Initialize your RTC
         RtcDateTime now = rtc.GetDateTime();
         Log.notice("Current rtc date/time: %s"CR, getDateTime(now).c_str());
-        //Serial.print(getDateTime(now)); // Get current time from RTC
 
-
-  
         connectWiFi();
         socketHandler.initializeSocket();
         eventEmitter.addListener(&modeHandler);
@@ -155,21 +172,45 @@ public:
     void loop() {
         // Check WiFi status
         if (WiFi.status() != WL_CONNECTED) connectWiFi();
+        unsigned long currentMillis = millis();
+        unsigned long currentMillisHour = millis();
 
         socketHandler.loop();
 
         // Button handling with debounce
-        unsigned long currentMillis = millis();
         int currentState = digitalRead(BUTTON_PIN);
         static unsigned long lastButtonPress = 0;
         
         if (lastState == HIGH && currentState == LOW && (currentMillis - lastButtonPress > 50)) {  // 50ms debounce
             lastButtonPress = currentMillis;
             Log.verbose("Button Press Detected"CR);
+
+            if (root.system.sensors[0] != nullptr && root.system.sensors[1] != nullptr) {
+                root.system.sensors[0]->readData();
+                root.system.sensors[1]->readData();
+
+            } else {
+                Log.error("Sensor is null!"CR);
+            }
+
             socketHandler.sendEmitJson("kefteme", root.toJson());
-            modeHandler.runMode();
+
+            root.system.updateAllSensors();
+            root.system.readAllSensors();
+
+            std::vector<float> tempHum = root.system.sensors[0]->getData();
+            std::vector<float> soilMoisture = root.system.sensors[1]->getData();
+
+            modeHandler.runMode(tempHum[0], tempHum[1], soilMoisture[0]);
+
+            Log.verbose("Current Sensor Settings: %F"CR, modeHandler.getZoneManualSetting("zone1"));
             Log.verbose("Time when pressing the button: %s"CR, getDateTime(rtc.GetDateTime()).c_str());
+
             digitalWrite(LED, HIGH);
+
+            Serial.print(modeHandler.wateringLog[0].name + "     ");
+            Serial.print("Start time: "+modeHandler.wateringLog[0].timestampStart + "      ");
+            Serial.print("finish time: " + modeHandler.wateringLog[0].timestampFinish);
         } else if (lastState == LOW && currentState == HIGH) {
             digitalWrite(LED, LOW);
         }
@@ -179,14 +220,54 @@ public:
         if(!isClocksSynchronized && rtc.GetDateTime().Minute() != 0 && rtc.GetDateTime().Second() == 0){
           Log.notice("The clocks has successfully synchronized"CR);
           isClocksSynchronized=true;
-          previousMillis = currentMillis;
+          previousMillis = millis();
+          previousMillisHour=millis();
         }
 
+        // updating every minute state of the system
         if(isClocksSynchronized){
           if (currentMillis - previousMillis >= interval) {
-              previousMillis = currentMillis;
-              Log.notice("Interval Passed: %l seconds"CR, interval / 1000);
-              modeHandler.runMode();
+            previousMillis = currentMillis;
+            Log.notice("Interval Passed: %l seconds"CR, interval / 1000);
+            
+            
+            std::vector<float> tempHum = root.system.sensors[0]->getData();
+            std::vector<float> soilMoisture = root.system.sensors[1]->getData();
+            modeHandler.runMode(tempHum[0], tempHum[1], soilMoisture[0]);
+
+            // Sending current systemState to server
+            socketHandler.sendEmitJson("kefteme", root.toJson());
+
+            // Sending wattering log if exist
+
+            if(!modeHandler.wateringLog.empty()){
+                Log.verbose("Watering log is not empty"CR);
+                JsonDocument wateringLogJson;
+                for(auto &record : modeHandler.wateringLog){
+                    wateringLogJson.add(record.toJson());
+                }
+                //modeHandler.wateringLog
+                socketHandler.sendEmitJson("wateringLog", wateringLogJson);
+                modeHandler.wateringLog.clear();
+                wateringLogJson.clear();
+            }else{
+                Log.verbose("Watering log is empty"CR);
+            }
+          }
+
+        if (currentMillis - previousMillisHour >= halfHourInterval) {
+            previousMillisHour = currentMillis;
+            Log.notice("30-minute task executed"CR);
+
+            // Sending current sensors data to server
+            JsonDocument doc;
+            doc["timestamp"] = getDateTime(rtc.GetDateTime());
+
+            root.system.updateAllSensors();
+            JsonDocument sensorsJson = root.system.sensorsToJson();
+            sensorsJson.add(doc);
+            socketHandler.sendEmitJson("sensorsData", sensorsJson);
+            doc.clear();
           }
         }
 

@@ -17,12 +17,18 @@ public:
             for (testIEventListener* listener : listeners) {
                 listener->onButtonAction(event, doc);
             }
-            }
+        }
         else if(event == "timed_mode"){
             for (testIEventListener* listener : listeners) {
                 listener->onTimedMode(event, doc);
             }
-        }else if(event == "zonesConfig"){
+        }
+        else if(event == "manual_mode"){
+            for (testIEventListener* listener : listeners) {
+                listener->onManualMode(event, doc);
+            }
+        }
+        else if(event == "zonesConfig"){
             for (testIEventListener* listener : listeners) {
                 listener->onZonesConfig(event, doc);
             }

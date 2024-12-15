@@ -10,22 +10,10 @@
       "mode": "TIMED",
       "schedules": [
         {
-          "startHour": 0,
-          "startMinute": 0,
-          "finishHour": 0,
-          "finishMinute": 38
-        },
-        {
-          "startHour": 20,
-          "startMinute": 27,
-          "finishHour": 23,
-          "finishMinute": 20
-        },
-        {
-          "startHour": 19,
-          "startMinute": 50,
-          "finishHour": 19,
-          "finishMinute": 59
+          "startHour": 16,
+          "startMinute": 30,
+          "finishHour": 16,
+          "finishMinute": 36
         }
       ]
     },
@@ -39,22 +27,16 @@
       "mode": "AUTO",
       "schedules": [
         {
-          "startHour": 15,
+          "startHour": 10,
           "startMinute": 0,
-          "finishHour": 15,
-          "finishMinute": 0
+          "finishHour": 11,
+          "finishMinute": 59
         },
         {
-          "startHour": 15,
-          "startMinute": 0,
-          "finishHour": 22,
-          "finishMinute": 8
-        },
-        {
-          "startHour": 14,
-          "startMinute": 47,
-          "finishHour": 15,
-          "finishMinute": 0
+          "startHour": 12,
+          "startMinute": 28,
+          "finishHour": 12,
+          "finishMinute": 43
         }
       ]
     }

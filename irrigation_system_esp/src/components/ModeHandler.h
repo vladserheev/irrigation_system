@@ -21,17 +21,36 @@ struct ZoneUpdate {
     bool turnOn;
 };
 
+class WateringRecord {    
+    public: 
+    String name;       // Имя зоны
+    String timestampStart;  // Время начала
+    String timestampFinish;
+    
+    JsonDocument toJson(){
+        JsonDocument jsonString;
+        jsonString["name"] = name;
+        jsonString["timestampStart"] = timestampStart;
+        jsonString["timestampFinish"] = timestampFinish;
+        return jsonString;
+    } // Время окончания
+};
+
 class ModeHandler : public testIEventListener {
    private:
     std::vector<Zone> zones;
     RtcDS1302<ThreeWire> &rtc;
     Root &root;
+    std::vector<WateringRecord> startedWateringLog; // started but not finished waterings
     std::queue<std::pair<Zone*, std::string>> zoneUpdateQueue;
     std::map<String, int> pinMap;
     unsigned long previousMillis = 0;
     const unsigned long delayTime = 2000;
 
    public:
+   std::vector<WateringRecord> wateringLog;
+
+
     ModeHandler(RtcDS1302<ThreeWire> &rtcRef, Root &rootRef, std::map<String, int> pinMap)
         : rtc(rtcRef), root(rootRef), pinMap(pinMap) {}
 
@@ -49,8 +68,14 @@ class ModeHandler : public testIEventListener {
     }
 
     void onTimedMode(const std::string &event, DynamicJsonDocument doc) override {
-        Log.notice("ModeHandler: Time settings event!" CR);
+        Log.notice("ModeHandler: Time mode event!" CR);
         updateTimeSettings(doc);
+    }
+
+    void onManualMode(const std::string &event, DynamicJsonDocument doc) override {
+        Log.notice("ModeHandler: Manual mode event!" CR);
+        //updateTimeSettings(doc);
+        updateManualSettings(doc);
     }
 
     void onZonesConfig(const std::string &event, DynamicJsonDocument doc) override {
@@ -81,6 +106,19 @@ class ModeHandler : public testIEventListener {
         }
     }
 
+    void setManualSettingForZone (String zoneName,  float humidityAir1Max, float humidityAir1Min, float humidityGround1Max, float humidityGround1Min, float temp1Max, float temp1Min){
+        Log.verbose("Setting manual settings for zone: %s"CR, zoneName);
+        for (auto &zone : zones) {
+            if (zone.name == zoneName) {
+                //zone.mode = TIMED;
+                setModeForZone(zoneName, SENSOR);
+                zone.addMaualSetting(zoneName, humidityAir1Max,  humidityAir1Min,  humidityGround1Max,  humidityGround1Min,  temp1Max,  temp1Min);
+                zone.print();
+                break;
+            }
+        }
+    }
+
     void setModeForZone(String zoneName, Mode mode) {
         for (auto &zone : zones) {
             if (zone.name == zoneName) {
@@ -99,11 +137,11 @@ class ModeHandler : public testIEventListener {
         }
     }
 
-    void runMode() {
+    void runMode(float temperature, float airHumidity, float soilMoistureZone1) {
         for (auto &zone : zones) {
             switch (zone.mode) {
                 case MANUAL: runManualMode(zone); break;
-                case SENSOR: runSensorMode(zone); break;
+                case SENSOR: runSensorMode(zone, temperature, airHumidity, soilMoistureZone1); break;
                 case TIMED: runTimedMode(zone); break;
             }
         }
@@ -117,12 +155,60 @@ class ModeHandler : public testIEventListener {
         
         if (currentZone->currentState == IDLE || currentZone->currentState == RUNNING) {
             zoneUpdateQueue.pop();
+            RtcDateTime now = rtc.GetDateTime();
+
+            addRecordToWateringLog(currentZone->name, getDateTime(now), status == "ON");
+            
+            // WateringRecord record;
+            // record.name = currentZone->name;
+            // if (status == "ON") {
+            //     Serial.print("------------------------------------------------------------------------------------------------------------------------------------------------");
+            //     record.timestampStart = getDateTime(now);
+            //     addRecordToWateringLog(currentZone->name, getDateTime(now), status == "ON");
+            //     wateringLog.push_back(record);  // Сохранение времени начала
+            // } else {
+            //     Serial.print(record)
+            //     record.timestampFinish = getDateTime(now); // Сохранение времени окончания
+            //     wateringLog.push_back(record); // Добавление в общий лог
+            // }
+        }
+    }
+
+    void addRecordToWateringLog(String zoneName, String dateTime, bool status){
+        if(status){
+            WateringRecord record;
+            record.name=zoneName;
+            record.timestampStart=dateTime;
+            record.timestampFinish="undefined";
+            startedWateringLog.push_back(record);
+        }else{
+            for(auto &record : startedWateringLog){
+                if(record.name == zoneName && record.timestampFinish=="undefined"){
+                    record.timestampFinish=dateTime;
+                    wateringLog.push_back(record);
+                }
+            }
         }
     }
 
     void print() {
         for (auto &zone : zones) {
             zone.print();
+        }
+    }
+
+    // void printWateringRecords(){
+    //     for (auto &record : wateringLog) {
+    //         Log.notice(Lo)
+    //     }
+    // }
+
+    float getZoneManualSetting(String zoneName){
+        for (auto &zone : zones) {
+            if (zone.name == zoneName) {
+                return zone.manualSetting.humidityAir1Max;
+                break;
+            }
         }
     }
 
@@ -136,44 +222,67 @@ class ModeHandler : public testIEventListener {
         }
     }
 
-    void updateTimeSettings(DynamicJsonDocument& doc) {
-    if (doc[1]["zones"].is<JsonArray>()) {
-        JsonArray zonesArray = doc[1]["zones"].as<JsonArray>();
-        
-        for (const auto &zoneJson : zonesArray) {
-            String zoneName = zoneJson["name"].as<String>();
-            setModeForZone(zoneName, TIMED);
-            Log.verbose("ModeHandler: timeSetting: zone name: %s"CR, zoneName);
+    void updateManualSettings(DynamicJsonDocument& doc) {
+        Log.verbose("ModeHandler: updateding manual settings!"CR);
 
-            // Make sure to clear the schedule before adding new times
-            clearZoneSchedule(zoneName);
+        if (doc[1]["zones"].is<JsonArray>()) {
+            JsonArray zonesArray = doc[1]["zones"].as<JsonArray>();
+            for (const auto &zoneJson : zonesArray) {
+                String zoneName = zoneJson["name"].as<String>();
+                setModeForZone(zoneName, SENSOR);
+                Log.verbose("ModeHandler: manualSettings: zone name: %s"CR, zoneName);
+                Serial.print(zoneJson["settings"].as<String>());
+                float humidityAir1Max = zoneJson["settings"]["humidityAir1Max"];
+                float humidityAir1Min = zoneJson["settings"]["humidityAir1Min"];
+                float humidityGround1Max = zoneJson["settings"]["humidityGround1Max"];
+                float humidityGround1Min = zoneJson["settings"]["humidityGround1Min"];
+                float temp1Max = zoneJson["settings"]["temp1Max"];
+                float temp1Min = zoneJson["settings"]["temp1Min"];
 
-            if (zoneJson["schedules"].is<JsonArray>()) {
-                JsonArray schedules = zoneJson["schedules"].as<JsonArray>();
-
-                for (const auto &schedule : schedules) {
-                    // Add checks to confirm these values exist before accessing
-                    if (schedule.containsKey("startHour") && schedule.containsKey("startMinute") &&
-                        schedule.containsKey("finishHour") && schedule.containsKey("finishMinute")) {
-                        
-                        uint8_t startHour = schedule["startHour"].as<uint8_t>();
-                        uint8_t startMinute = schedule["startMinute"].as<uint8_t>();
-                        uint8_t finishHour = schedule["finishHour"].as<uint8_t>();
-                        uint8_t finishMinute = schedule["finishMinute"].as<uint8_t>();
-
-                        setTimedModeForZone(zoneName, startHour, startMinute, finishHour, finishMinute);
-                    } else {
-                        Log.error("ModeHandler: Schedule data is incomplete for zone %s!" CR, zoneName.c_str());
-                    }
-                }
-            } else {
-                Log.error("ModeHandler: 'schedules' is not a JsonArray for zone %s!" CR, zoneName.c_str());
+// Set the manual settings for the zone
+                setManualSettingForZone(zoneName, humidityAir1Max, humidityAir1Min, humidityGround1Max, humidityGround1Min, temp1Max, temp1Min);
             }
         }
-    } else {
-        Log.error("ModeHandler: Zone data is not an array!" CR);
     }
-}
+
+    void updateTimeSettings(DynamicJsonDocument& doc) {
+        if (doc[1]["zones"].is<JsonArray>()) {
+            JsonArray zonesArray = doc[1]["zones"].as<JsonArray>();
+            
+            for (const auto &zoneJson : zonesArray) {
+                String zoneName = zoneJson["name"].as<String>();
+                setModeForZone(zoneName, TIMED);
+                Log.verbose("ModeHandler: timeSetting: zone name: %s"CR, zoneName);
+
+                // Make sure to clear the schedule before adding new times
+                clearZoneSchedule(zoneName);
+
+                if (zoneJson["schedules"].is<JsonArray>()) {
+                    JsonArray schedules = zoneJson["schedules"].as<JsonArray>();
+
+                    for (const auto &schedule : schedules) {
+                        // Add checks to confirm these values exist before accessing
+                        if (schedule.containsKey("startHour") && schedule.containsKey("startMinute") &&
+                            schedule.containsKey("finishHour") && schedule.containsKey("finishMinute")) {
+                            
+                            uint8_t startHour = schedule["startHour"].as<uint8_t>();
+                            uint8_t startMinute = schedule["startMinute"].as<uint8_t>();
+                            uint8_t finishHour = schedule["finishHour"].as<uint8_t>();
+                            uint8_t finishMinute = schedule["finishMinute"].as<uint8_t>();
+
+                            setTimedModeForZone(zoneName, startHour, startMinute, finishHour, finishMinute);
+                        } else {
+                            Log.error("ModeHandler: Schedule data is incomplete for zone %s!" CR, zoneName.c_str());
+                        }
+                    }
+                } else {
+                    Log.error("ModeHandler: 'schedules' is not a JsonArray for zone %s!" CR, zoneName.c_str());
+                }
+            }
+        } else {
+            Log.error("ModeHandler: Zone data is not an array!" CR);
+        }
+    }
 
 
     void runManualMode(Zone &zone) {
@@ -182,10 +291,52 @@ class ModeHandler : public testIEventListener {
         zone.print();
     }
 
-    void runSensorMode(Zone &zone) {
-        Serial.print("Sensor mode for ");
-        Serial.println(zone.name);
+    void runSensorMode(Zone &zone, float temperature, float airHumidity, float soilMoistureZone1) {
+        Log.notice("Sensor mode for %s" CR, zone.name.c_str());
+        Log.notice("Sensors info: Temperature: %F, Air Humidity: %F, Soil Moisture: %F" CR, temperature, airHumidity, soilMoistureZone1);
+
+        bool isNeedToUpdate = false;
+
+        // Check soil moisture threshold
+        if (soilMoistureZone1 < zone.manualSetting.humidityGround1Min) {
+            Log.verbose("Sensor mode: Soil moisture below threshold. Zone needs activation." CR);
+            isNeedToUpdate = true;
+
+            if (!root.system.components.getValveStatusByName(zone.valve.name.c_str())) {
+                Log.verbose("Sensor mode: Activating zone." CR);
+                scheduleZoneUpdate(zone, "ON");
+            }
+        } else if(soilMoistureZone1 > zone.manualSetting.humidityGround1Max) {
+            Log.verbose("Sensor mode: Soil moisture is above threshold. Zone needs deactivation" CR);
+
+            if (root.system.components.getValveStatusByName(zone.valve.name.c_str())) {
+                isNeedToUpdate = false;
+                Log.verbose("Sensor mode: Deactivating zone." CR);
+                scheduleZoneUpdate(zone, "OFF");
+            }
+        }else{
+           Log.verbose("Sensor mode: Zone is in valid range!" CR); 
+
+           if (root.system.components.getValveStatusByName(zone.valve.name.c_str())) {
+                isNeedToUpdate = false;
+                Log.verbose("Sensor mode: Deactivating zone." CR);
+                scheduleZoneUpdate(zone, "OFF");
+            }
+        }
+
+        // Optional: Temperature and air humidity logic
+        if (temperature > zone.manualSetting.temp1Max) {
+            Log.warning("Sensor mode: Temperature exceeds maximum threshold!" CR);
+        }
+        if (airHumidity < zone.manualSetting.humidityAir1Max) {
+            Log.warning("Sensor mode: Air humidity below minimum threshold!" CR);
+        }
+
+        if (!isNeedToUpdate) {
+            Log.notice("Sensor mode: Zone %s does not need an update." CR, zone.name.c_str());
+        }
     }
+
 
     void runTimedMode(Zone &zone) {
         Log.notice("Timed mode for %s" CR, zone.name.c_str());
@@ -196,7 +347,6 @@ class ModeHandler : public testIEventListener {
         uint16_t currentTimeInMinutes = now.Hour() * 60 + now.Minute();
 
         for (const auto &schedule : zone.schedules) {
-            Log.verbose("Time mode: time in not in range"CR);
             if (isTimeInRange(currentTimeInMinutes, schedule.startHour * 60 + schedule.startMinute, schedule.finishHour * 60 + schedule.finishMinute)) {
                 Log.verbose("Time mode: time in range"CR);
                 if (!root.system.components.getValveStatusByName(zone.valve.name.c_str())) {
@@ -205,13 +355,15 @@ class ModeHandler : public testIEventListener {
                     scheduleZoneUpdate(zone, "ON");
                 }
                 return;
+            }else{
+                 if (root.system.components.getValveStatusByName(zone.valve.name.c_str())) {
+                    isNeedToUpdate=false;
+                    scheduleZoneUpdate(zone, "OFF");
+                }   
             }
         }
 
-        if (root.system.components.getValveStatusByName(zone.valve.name.c_str())) {
-            isNeedToUpdate=false;
-            scheduleZoneUpdate(zone, "OFF");
-        }
+        
         
         if(!isNeedToUpdate){ Log.notice("Time mode: Zone: %s do not need to update"CR, zone.name.c_str());};
     }
@@ -294,6 +446,24 @@ class ModeHandler : public testIEventListener {
 
     bool isDelayOver() const {
         return millis() - previousMillis >= delayTime;
+    }
+
+    String getDateTime(RtcDateTime now) {
+    // Create a String to hold the formatted date and time
+      String dateTimeString = "";
+
+      // Build the date string
+      dateTimeString += String(now.Year()) + "/";
+      dateTimeString += String(now.Month()) + "/";
+      dateTimeString += String(now.Day()) + " ";
+
+      // Build the time string
+      dateTimeString += String(now.Hour()) + ":";
+      dateTimeString += String(now.Minute()) + ":";
+      dateTimeString += String(now.Second());
+
+      // Return the formatted date and time string
+      return dateTimeString;
     }
 };
 

@@ -50,5 +50,6 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp",
         "iostream": "cpp"
-    }
+    },
+    "C_Cpp.dimInactiveRegions": false
 }

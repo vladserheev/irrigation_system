@@ -8,6 +8,7 @@ public:
     virtual void onEvent(const std::string& event) = 0;
     virtual void onButtonAction(const std::string& event, DynamicJsonDocument doc) = 0;
     virtual void onTimedMode(const std::string& event, DynamicJsonDocument doc) = 0;
+    virtual void onManualMode(const std::string& event, DynamicJsonDocument doc) = 0;
     virtual void onZonesConfig(const std::string& event, DynamicJsonDocument doc) = 0;
     virtual ~testIEventListener() = default;
 };

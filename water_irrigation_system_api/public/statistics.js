@@ -1,6 +1,11 @@
 window.zonesWateringData = [];
 window.sensorsData = [];
 
+let dictionary={
+    zone1: "Zone 1",
+    zone2: "Zone 2"
+}
+
 $(window).on("dataReceived", (event, data) => {
     console.log(event);
     console.log(data);
@@ -16,6 +21,7 @@ $(window).on("dataReceived", (event, data) => {
     window.sensorsData = data.sensorsData;
     $('#dateRangeInput').trigger('change');
 });
+
 
 $('#dateMinusDay').click(() => {
     let currentDate = $('#dateRangeInput').val();
@@ -209,8 +215,8 @@ function update(date_range, data, dataGantt) {
 
     // svg.selectAll(".line").remove();
     xScale.domain(arr);
-    yScaleTemp.domain([0, d3.max(data, d => Math.max(d.temperature))]);
-    yScaleHum.domain([0, d3.max(data, d => Math.max(d.soilHumidity, d.airHumidity))]);
+    yScaleTemp.domain([0, d3.max(data, d => Math.max(d.temperature))+3]);
+    yScaleHum.domain([0, d3.max(data, d => Math.max(d.soilHumidity, d.airHumidity))+3]);
     //console.log(d3.max(data, d => Math.max(d.temperature, d.soilHumidity, d.airHumidity)));
 
 
@@ -251,7 +257,7 @@ function update(date_range, data, dataGantt) {
                 .attr("height", height)
                 .attr("rx", 5)
                 .attr("ry", 5)
-                .attr("fill", (d, i) => d.zone === 'Zone 1' ? '#17c3b2' : '#227C9D')
+                .attr("fill", (d, i) => d.zone === 'zone1' ? '#17c3b2' : '#227C9D')
                 .attr("width", d => xScale(d.end) - xScale(d.start))
                 .style('opacity', 0)
                 .lower()
@@ -280,7 +286,7 @@ function update(date_range, data, dataGantt) {
                 .duration(1000)
                 .attr("x", d => xScale(d.start))
                 .attr("width", d => xScale(d.end) - xScale(d.start))
-                .attr("fill", (d, i) => d.zone === 'Zone 1' ? '#17c3b2' : '#227C9D'),
+                .attr("fill", (d, i) => d.zone === 'zone1' ? '#17c3b2' : '#227C9D'),
 
             exit => exit
                 .transition()
