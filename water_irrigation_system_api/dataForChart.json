@@ -8663,6 +8663,54 @@
       "temperature": null,
       "soilHumidity": 61,
       "airHumidity": null
+    },
+    {
+      "date": "2024-12-18T15:29:00.000Z",
+      "temperature": null,
+      "soilHumidity": 100,
+      "airHumidity": null
+    },
+    {
+      "date": "2024-12-18T15:27:00.000Z",
+      "temperature": null,
+      "soilHumidity": 17,
+      "airHumidity": null
+    },
+    {
+      "date": "2024-12-18T15:27:00.000Z",
+      "temperature": null,
+      "soilHumidity": 13,
+      "airHumidity": null
+    },
+    {
+      "date": "2024-12-18T15:27:00.000Z",
+      "temperature": null,
+      "soilHumidity": 99,
+      "airHumidity": null
+    },
+    {
+      "date": "2024-12-18T15:27:00.000Z",
+      "temperature": null,
+      "soilHumidity": 7,
+      "airHumidity": null
+    },
+    {
+      "date": "2024-12-18T15:27:00.000Z",
+      "temperature": null,
+      "soilHumidity": 100,
+      "airHumidity": null
+    },
+    {
+      "date": "2024-12-18T15:27:00.000Z",
+      "temperature": null,
+      "soilHumidity": 100,
+      "airHumidity": null
+    },
+    {
+      "date": "2024-12-23T12:27:00.000Z",
+      "temperature": null,
+      "soilHumidity": 38,
+      "airHumidity": null
     }
   ],
   "zonesWateringData": [

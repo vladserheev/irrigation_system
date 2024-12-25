@@ -248,6 +248,16 @@ app.post('/api/sendCurrentStateToStatistics', (req, res) => {
     updateCurrentStateOnClientSide();
 });
 
+
 server.listen(PORT, () => {
+    const interfaces = require('os').networkInterfaces();
+    console.log(`Server is running on:`);
+    for (const interfaceName in interfaces) {
+        interfaces[interfaceName].forEach(interfaceInfo => {
+            if (interfaceInfo.family === 'IPv4' && !interfaceInfo.internal) {
+                console.log(`- http://${interfaceInfo.address}:${PORT}`);
+            }
+        });
+    }
     log("INFO", `Server running at ${PORT}`);
 });

@@ -1,115 +1,439 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Control the system</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="statisticsStyle.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Nawodniania</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #f0f7f7;
+            --accent-color: #00a5cf;
+            --success-color: #4ade80;
+            --warning-color: #facc15;
+            --danger-color: #f87171;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #1f2937;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .card {
+            background-color: var(--primary-bg);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 16px 0;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        .nav-card.active{
+            display: block;
+        }
+
+
+        .stat-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 8px 0;
+        }
+
+        input[type="range"]{
+            accent-color: var(--accent-color);
+        }
+
+        button[type="submit"]{
+            background-color: var(--accent-color);
+        }
+
+        .toggle-button {
+            background-color: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 24px;
+            padding: 8px 24px;
+            transition: all 0.2s;
+        }
+
+        .toggle-button.control.active{
+            background-color: var(--success-color);
+            color: white;
+            border-color: var(--success-color);
+        }
+
+        .toggle-button.active {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .chart-container {
+            background-color: var(--primary-bg);
+            border-radius: 16px;
+            /*height: 240px;*/
+            margin: 24px 0;
+        }
+
+        .weather-card {
+            top: 24px;
+            right: 24px;
+            background-color: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            min-width: 200px;
+        }
+
+        .weather-icon {
+            font-size: 2rem;
+            margin-right: 8px;
+        }
+
+        #navMenu.open {
+            max-height: 200px; /* Adjust based on content */
+            margin-top: 0.5rem;
+        }
+
+        @media (min-width: 768px) {
+            #navMenu {
+                max-height: none !important;
+                margin-top: 0 !important;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .stat-card {
+                padding: 16px;
+            }
+
+            .weather-icon {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (min-width: 641px) and (max-width: 1024px) {
+            #weatherCard {
+                grid-column: span 2;
+            }
+        }
+
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .content {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .content.visible {
+            opacity: 1;
+        }
+
+        .manual-card, .timed-card{
+            background-color: white;
+        }
+
+        .backgroung-white{
+            background-color: white;
+        }
+
+        #chart {
+            min-width: 500px;
+            height: 100%;
+            min-height: 400px;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        #statistics{
+            overflow: auto;
+        }
+
+    </style>
 </head>
-<body>
-<h2>Control the system</h2>
-<p>Connection to ESP: <span id="connectionToMaster-status"></span></p>
-<p>Current controlling mode: <span id="currentMode"></span></p>
+<body class="p-6 max-w-6xl mx-auto relative">
 
-<!-- Navigation Bar -->
-<nav>
-    <button class="nav-button" data-target="#directControl">Direct Control</button>
-    <button class="nav-button" data-target="#CurrentState">Current State</button>
-    <button class="nav-button" data-target="#manualSettings">Manual Settings</button>
-    <button class="nav-button" data-target="#timeSettings">Settings by time</button>
-    <button class="nav-button" data-target="#statistics">Statistics</button>
-</nav>
-
-<!-- Direct Control Section -->
-<div id="directControl" class="status">
-    <h3>Direct control</h3>
-    <p>Pump <span><button class="toggledButton" id="pump">OFF</button></span></p>
-    <p>Valve main <span><button class="toggledButton" id="valve1">OFF</button></span></p>
-    <p>Valve zone 1 <span><button class="toggledButton" id="valve2">OFF</button></span></p>
-    <p>Valve zone 2 <span><button class="toggledButton" id="valve3">OFF</button></span></p>
-    <p>Power <span><button class="toggledButton" id="powerBtn">OFF</button></span></p>
+<div id="preloader">
+    <div class="spinner"></div>
 </div>
 
-<!-- Valves Status Section -->
-<div id="CurrentState" class="status">
-    <h3>Valves Status</h3>
-    <div class="components"></div>
-    <h3>Sensor Data</h3>
-    <div class="sensors"></div>
-</div>
-
-
-<!-- Sensors Settings Section -->
-<div id="manualSettings" class="status">
-    <h3>Manual Settings</h3>
-    <form id="manualSettingsForm">
-        <div class="zone">
-            <h4>Zone 1</h4>
-            <p>Temperature Range (°C):</p>
-            <p>
-                <span>Min: <span class="value" data-display="temp1MinValue">10</span>°C</span>
-                <span><input type="range" name="temp1Min" class="range-input" data-display="temp1MinValue" min="0" max="40" value="10" required></span>
-            </p>
-            <p>
-                <span>Max: <span class="value" data-display="temp1MaxValue">30</span>°C</span>
-                <span><input type="range" name="temp1Max" class="range-input" data-display="temp1MaxValue" min="0" max="40" value="30" required></span>
-            </p>
-            <p>Air Humidity (%):</p>
-            <p>
-                <span>Min: <span class="value" data-display="humidityAir1MinValue">30</span>%</span>
-                <span><input type="range" name="humidityAir1Min" class="range-input" data-display="humidityAir1MinValue" min="0" max="100" value="30" required></span>
-            </p>
-            <p>
-                <span>Max: <span class="value" data-display="humidityAir1MaxValue">60</span>%</span>
-                <span><input type="range" name="humidityAir1Max" class="range-input" data-display="humidityAir1MaxValue" min="0" max="100" value="60" required></span>
-            </p>
-            <p>Ground Humidity (%):</p>
-            <p>
-                <span>Min: <span class="value" data-display="humidityEarth1MinValue">20</span>%</span>
-                <span><input type="range" name="humidityGround1Min" class="range-input" data-display="humidityEarth1MinValue" min="0" max="100" value="20" required></span>
-            </p>
-            <p>
-                <span>Max: <span class="value" data-display="humidityEarth1MaxValue">50</span>%</span>
-                <span><input type="range" name="humidityGround1Max" class="range-input" data-display="humidityEarth1MaxValue" min="0" max="100" value="50" required></span>
-            </p>
+<header class="mb-8">
+    <h1 class="text-4xl font-bold mb-4 sm:mb-6">System Nawodniania</h1>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="stat-card">
+            <div class="text-sm mb-1">Status połączenia</div>
+            <div class="text-2xl font-semibold"><span id="connectionToMaster-status"></span></div>
         </div>
-        <input type="submit" value="Send">
-    </form>
-</div>
-
-<!-- Timed Settings Section -->
-<div id="timeSettings" class="status">
-    <h3>Zone Settings by Time</h3>
-    <form id="timeSettingsForm">
-        <!-- Zone 1 -->
-        <div class="zoneTimedMode" id="zone1">
-            <h4>Zone 1</h4>
-            <div class="schedules"></div>
-            <button type="button" class="add-schedule" data-zone="1">Add Another Schedule</button>
+        <div class="stat-card">
+            <div class="text-sm mb-1">Tryb sterowania</div>
+            <div class="text-2xl font-semibold">Automatyczny</div>
         </div>
-
-        <!-- Zone 2 -->
-        <div class="zoneTimedMode" id="zone2">
-            <h4>Zone 2</h4>
-            <div class="schedules"></div>
-            <button type="button" class="add-schedule" data-zone="2">Add Another Schedule</button>
+        <div class="stat-card weather-card" id="weatherCard">
+            <div class="flex items-center justify-between mb-2">
+                <div class="text-sm text-gray-600" id="cityName">Lublin</div>
+                <div class="text-sm text-gray-600" id="dateToday">Dziś</div>
+            </div>
+            <div class="flex items-center">
+                <span class="weather-icon mr-3" id="weatherIcon"></span>
+                <div>
+                    <div class="text-2xl font-semibold" id="temperature"></div>
+                    <div class="text-sm text-gray-600" id="weatherDescription"></div>
+                </div>
+            </div>
         </div>
+    </div>
+</header>
 
-        <button type="submit">Send</button>
-    </form>
+<!-- Rest of the code remains exactly the same -->
+<div class="relative mb-8">
+    <!-- Mobile menu button -->
+    <button id="mobileMenuBtn" class="md:hidden p-2 rounded-lg border-2 border-gray-200 hover:bg-gray-50 mb-2">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+    </button>
 
-    <div id="status"></div>
+    <!-- Navigation menu - hidden by default on mobile -->
+    <nav class="flex flex-col md:flex-row gap-2 overflow-hidden md:overflow-x-auto transition-all duration-300 max-h-0 md:max-h-none" id="navMenu">
+        <button class="toggle-button active nav-button" data-target="#mainSection">Kontrola</button>
+        <button class="toggle-button nav-button" data-target="#manualSettings">Ustawienia ręczne</button>
+        <button class="toggle-button nav-button" data-target="#timeSettings">Harmonogram</button>
+    </nav>
 </div>
 
+<main>
 
-<!-- Statistics Section -->
-<div id="statistics" class="status">
-    <div id="chart"></div>
-    <span style="margin-left: 30px"><button id="dateMinusDay" value="-">< </button><input style="margin:0 5px 0 5px" type="date" name="dateRangeInput" id="dateRangeInput"><button id="datePlusDay" value="+"> ></button></span>
-    <div id="tooltip" class="tooltip"></div>
-</div>
+    <!-- Control Section -->
+    <section id="mainSection" class="nav-card">
+        <section class="card" id="directControl">
+            <h2 class="text-xl font-semibold mb-4">Kontrola bezpośrednia</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="stat-card">
+                    <div class="flex justify-between items-center">
+                        <span>Pompa</span>
+                        <button class="toggle-button control" id="pump">WYŁ</button>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex justify-between items-center">
+                        <span>Zawór główny</span>
+                        <button class="toggle-button control" id="valve1">WYŁ</button>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="stat-card">
+                    <div class="flex justify-between items-center">
+                        <span>Zawór 1</span>
+                        <button class="toggle-button control" id="valve2">WYŁ</button>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex justify-between items-center">
+                        <span>Zawór 2</span>
+                        <button class="toggle-button control" id="valve3">WYŁ</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card sensors" id="CurrentState">
+            <h2 class="text-xl font-semibold mb-4">Czujniki</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="stat-card">
+                    <div class="text-sm text-gray-600">Temperatura</div>
+                    <div class="text-2xl font-semibold">24°C <span id="TemperatureSensorOutput"></span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="text-sm text-gray-600">Wilgotność powietrza</div>
+                    <div class="text-2xl font-semibold">65% <span id="AirHumiditySensorOutput"></span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="text-sm text-gray-600">Wilgotność gleby 1</div>
+                    <div class="text-2xl font-semibold">45% <span id="SoilMoistureSensorOutput"></span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="text-sm text-gray-600">Wilgotność gleby 2</div>
+                    <div class="text-2xl font-semibold">45%</div>
+                </div>
+            </div>
+        </section>
+        <section class="card" id="statistics">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Statystyki</h2>
+                <div class="flex items-center gap-2">
+                    <div id="tooltip" class="tooltip"></div>
+                    <button class="p-2" id="dateMinusDay" value="-">←</button>
+                    <input class="p-2 rounded border" type="date" name="dateRangeInput" id="dateRangeInput">
+                    <button class="p-2" id="datePlusDay" value="+">→</button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <!-- Chart data -->
+                <div id="chart" class="card backgroung-white " >
+                </div>
+            </div>
+        </section>
+    </section>
+
+
+    <section class="card nav-card bg-white p-6 rounded-lg shadow" id="timeSettings">
+        <h2 class="text-xl font-semibold mb-4">Harmonogram</h2>
+
+        <form id="timeSettingsForm">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Zone 1 -->
+                <div class="backgroung-white card space-y-4 p-4 rounded-lg shadow-md border border-gray-200" id="zone1">
+                    <h3 class="text-xl font-semibold text-gray-500">Strefa 1</h3>
+                    <div class="schedules">
+                        <!-- Schedule Item -->
+                    </div>
+                    <button type="button" class="add-schedule w-full px-4 py-2 text-sm text-blue-600 hover:text-blue-700 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors" data-zone="1">
+                        Add Another Schedule
+                    </button>
+                </div>
+
+                <!-- Zone 2 -->
+                <div class="backgroung-white card space-y-4 p-4 rounded-lg shadow-md border border-gray-200" id="zone2">
+                    <h3 class="text-xl font-semibold text-gray-500">Strefa 2</h3>
+                    <div class="schedules space-y-4">
+                        <!-- Schedule Item -->
+
+
+                    </div>
+                    <button type="button" class="add-schedule w-full px-4 py-2 text-sm text-blue-600 hover:text-blue-700 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors" data-zone="2">
+                        Add Another Schedule
+                    </button>
+                </div>
+            </div>
+            <div class="flex justify-center mt-6">
+                <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                    Wyślij
+                </button>
+            </div>
+        </form>
+
+        <div id="status" class="mt-4 text-center text-gray-700"></div>
+    </section>
+
+    <!--manual settings -->
+    <section class="card nav-card" id="manualSettings">
+        <h2 class="text-xl font-semibold mb-4">Ustawienia ręczne</h2>
+
+        <form id="manualSettingsForm">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Zone 1 -->
+                <div class="bg-white card space-y-4 manual-card">
+                    <h3 class="text-xl font-semibold text-gray-500">Strefa 1</h3>
+                    <p class="block text-lg text-gray-700">Temperatura:</p>
+                    <div class="ml-2">
+                        <label for="temp1Min" class="block text-gray-700"><span class="font-semibold">Min:</span> <span> <span class="value" data-display="temp1MinValue">14</span>°C</span></label>
+                        <input name="temp1Min" id="temp1Min" type="range" value="14" data-display="temp1MinValue" class="range-input range w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                    </div>
+                    <div class="ml-2">
+                        <label for="temp1Max" class="block text-gray-700"><span class="font-semibold">Max:</span> <span> <span class="value" data-display="temp1MaxValue">34</span>°C</span></label>
+                        <input name="temp1Max" id="temp1Max" type="range" value="34" data-display="temp1MaxValue" class="range-input w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                    </div>
+
+                    <p class="block text-lg text-gray-700">Wiłgotność powietrza:</p>
+                    <div class="ml-2">
+                        <label for="humidityAir1Min" class="block text-gray-700"><span class="font-semibold">Min:</span> <span> <span class="value" data-display="humidityAir1MinValue">22</span>%</span></label>
+                        <input name="humidityAir1Min" id="humidityAir1Min" type="range" value="22" data-display="humidityAir1MinValue" class="range-input w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                    </div>
+                    <div class="ml-2">
+                        <label for="humidityAir1Max" class="block text-gray-700"><span class="font-semibold">Max:</span> <span> <span class="value" data-display="humidityAir1MaxValue">35</span>%</span></label>
+                        <input name="humidityAir1Max" id="humidityAir1Max" type="range" value="35" data-display="humidityAir1MaxValue" class="range-input w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                    </div>
+
+                    <p class="block text-lg text-gray-700">Wiłgotność głęby:</p>
+                    <div class="ml-2">
+                        <label for="humidityGround1Min" class="block text-gray-700"><span class="font-semibold">Min:</span> <span> <span class="value" data-display="humidityGround1MinValue">30</span>%</span></label>
+                        <input name="humidityGround1Min" id="humidityGround1Min" type="range" value="30" data-display="humidityGround1MinValue" class="range-input w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                    </div>
+                    <div class="ml-2">
+                        <label for="humidityGround1Max" class="block text-gray-700"><span class="font-semibold">Max:</span> <span> <span class="value" data-display="humidityGround1MaxValue">60</span>%</span></label>
+                        <input name="humidityGround1Max" id="humidityGround1Max" type="range" value="60" data-display="humidityGround1MaxValue" class="range-input w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                    </div>
+                </div>
+
+
+                <!-- Zone 2 -->
+                <div class="bg-white card space-y-4 manual-card">
+                    <h3 class="text-xl font-semibold text-gray-500">Strefa 2</h3>
+
+                    <p class="block text-lg text-gray-700">Temperatura:</p>
+                    <div class="ml-2">
+                        <label for="temp2Min" class="block text-gray-700"><span class="font-semibold">Min:</span> <span> <span class="value" data-display="temp2MinValue">16</span>°C</span></label>
+                        <input name="temp2Min" id="temp2Min" type="range" value="16" data-display="temp2MinValue" class="range-input range w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                    </div>
+                    <div class="ml-2">
+                        <label for="temp2Max" class="block text-gray-700"><span class="font-semibold">Max:</span> <span> <span class="value" data-display="temp2MaxValue">30</span>°C</span></label>
+                        <input name="temp2Max" id="temp2Max" type="range" value="30" data-display="temp2MaxValue" class="range-input w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                    </div>
+
+                    <p class="block text-lg text-gray-700">Wiłgotność powietrza:</p>
+                    <div class="ml-2">
+                        <label for="humidityAir2Min" class="block text-gray-700"><span class="font-semibold">Min:</span> <span> <span class="value" data-display="humidityAir2MinValue">30</span>%</span></label>
+                        <input name="humidityAir2Min" id="humidityAir2Min" type="range" value="30" data-display="humidityAir2MinValue" class="range-input w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                    </div>
+                    <div class="ml-2">
+                        <label for="humidityAir2Max" class="block text-gray-700"><span class="font-semibold">Max:</span> <span> <span class="value" data-display="humidityAir2MaxValue">70</span>%</span></label>
+                        <input name="humidityAir2Max" id="humidityAir2Max" type="range" value="70" data-display="humidityAir2MaxValue" class="range-input w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                    </div>
+
+                    <p class="block text-lg text-gray-700">Wiłgotność głeby:</p>
+                    <div class="ml-2">
+                        <label for="humidityGround2Min" class="block text-gray-700"><span class="font-semibold">Min:</span> <span> <span class="value" data-display="humidityGround2MinValue">40</span>%</span></label>
+                        <input name="humidityGround2Min" id="humidityGround2Min" type="range" value="40" data-display="humidityGround2MinValue" class="range-input w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                    </div>
+                    <div class="ml-2">
+                        <label for="humidityGround2Max" class="block text-gray-700"><span class="font-semibold">Max:</span> <span> <span class="value" data-display="humidityGround2MaxValue">80</span>%</span></label>
+                        <input name="humidityGround2Max" id="humidityGround2Max" type="range" value="80" data-display="humidityGround2MaxValue" class="range-input w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-center mt-6">
+                <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Wyślij
+                </button>
+            </div>
+        </form>
+    </section>
+</main>
 
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>

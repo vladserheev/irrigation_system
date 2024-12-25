@@ -43,9 +43,14 @@
 #define SOIL_SENSOR_PIN 34
 
 
-const char* ssid = "KEFTEME";
-const char* pass = "spokospoko";
-const char* socketioIp = "192.168.1.100";
+// const char* ssid = "KEFTEME";
+// const char* pass = "spokospoko";
+const char* ssid = "iPhone";
+const char* pass = "11111111";
+ //const char* socketioIp = "192.168.1.100";
+  //const char* socketioIp = "192.168.56.1";
+const char* socketioIp = "172.20.10.3";
+
 uint16_t socketioPort = 8080;
 const char* socketioQuery = "/socket.io/?EIO=4";
 
@@ -226,6 +231,7 @@ public:
 
         // updating every minute state of the system
         if(isClocksSynchronized){
+            
           if (currentMillis - previousMillis >= interval) {
             previousMillis = currentMillis;
             Log.notice("Interval Passed: %l seconds"CR, interval / 1000);

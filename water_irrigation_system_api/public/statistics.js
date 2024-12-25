@@ -19,7 +19,12 @@ $(window).on("dataReceived", (event, data) => {
     });
     window.zonesWateringData = data.zonesWateringData;
     window.sensorsData = data.sensorsData;
-    $('#dateRangeInput').trigger('change');
+    drawChart();
+});
+
+$( window ).on( "resize", function() {
+   drawChart();
+   console.log("resize");
 });
 
 
@@ -30,7 +35,7 @@ $('#dateMinusDay').click(() => {
         dateFromInput.setDate(dateFromInput.getDate() - 1);
         let newDate = dateFromInput.toISOString().split('T')[0];
         $('#dateRangeInput').val(newDate);
-        $('#dateRangeInput').trigger('change');
+        drawChart();
     }
 })
 $('#datePlusDay').click(() => {
@@ -40,10 +45,11 @@ $('#datePlusDay').click(() => {
         dateFromInput.setDate(dateFromInput.getDate() + 1);
         let newDate = dateFromInput.toISOString().split('T')[0];
         $('#dateRangeInput').val(newDate);
-        $('#dateRangeInput').trigger('change');
+        drawChart();
     }
 })
-$("#dateRangeInput").on("change", () =>{
+
+const drawChart = () => {
     console.log("change");
     console.log(window.zonesWateringData);
 
@@ -57,6 +63,10 @@ $("#dateRangeInput").on("change", () =>{
     console.log("filtred Sensors data:", filteredData);
     console.log("filtred Watering zones data:", filteredGantt);
     update(dateRange, filteredData, filteredGantt);
+}
+
+$("#dateRangeInput").on("change", () =>{
+    drawChart();
 })
 
 const rgbColors = {
@@ -69,144 +79,153 @@ dateRange = {}
 // Filter the data array based on the date range
 //const filteredData = sensorsData.filter(d => d.date >= dateRange.startDate && d.date <= dateRange.endDate);
 
-const margin = { top: 20, right: 50, bottom: 50, left: 50 };
-const width = 600 - margin.left - margin.right;
-const height = 400 - margin.top - margin.bottom;
+// const margin = { top: 20, right: 50, bottom: 50, left: 50 };
+// const width = 800 - margin.left - margin.right;
+// const height = 400 - margin.top - margin.bottom;
 
-$("#errorBlock").css({"width":width + margin.left, "height":height + margin.top});
+function getChartDimensions() {
+    const containerDOM = d3.select("#chart").node();
+    if (!containerDOM) {
+        console.error("Container with ID '#chart' not found!");
+        return { margin: { top: 20, right: 50, bottom: 50, left: 50 }, width: 300, height: 400 };
+    }
 
-const svg = d3.select("#chart")
-    .append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform", `translate(${margin.left},${margin.top})`);
+    console.log(containerDOM.getBoundingClientRect().width, "container width");
+
+    const margin = { top: 20, right: 100, bottom: 70, left: 50 };
+
+    // Correct the usage of containerDOM width
+    const containerWidth = containerDOM.getBoundingClientRect().width;
+    const width = Math.max(containerWidth - margin.left - margin.right, 300); // минимальная ширина 300px
+
+    const height = Math.min(460, window.innerHeight * 0.6) - margin.top - margin.bottom; // адаптивная высота
+
+    return { margin, width, height };
+}
+
+
+// Инициализация размеров
+
+dateRangeArray = [dateRange.startDate, dateRange.endDate];
+//$("#errorBlock").css({"width":width + margin.left, "height":height + margin.top});
+
+
+// Добавление диаграммы Ганта (Зоны полива)
+function update(date_range, data, dataGantt) {
+    $("#chart").empty();
+
+    const {margin, width, height} = getChartDimensions();
+    //console.log($(".errorBlock").length);
+    const svg = d3.select("#chart")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
 
 // Масштабы для осей X и Y
-dateRangeArray = [dateRange.startDate, dateRange.endDate];
 
-const xScale = d3.scaleTime()
-    //.domain(dateRangeArray)
-    .range([0, width]);
 
-const yScaleTemp = d3.scaleLinear()
-    .domain([0, 10])
-    .range([height, 0]);
-const yScaleHum = d3.scaleLinear()
-    .domain([0, 10])
-    //.domain([0, d3.max(sensorsData, d => Math.max(d.temperature, d.soilHumidity, d.airHumidity))])
-    .range([height, 0]);
+    const xScale = d3.scaleTime()
+        //.domain(dateRangeArray)
+        .range([0, width]);
 
-svg.append("g")
-    .attr("transform", `translate(${width}, 0)`)
-    .attr("class", "temp-axis")
-    .call(d3.axisRight(yScaleTemp).ticks(10))
-    .selectAll(".tick text")
-    .attr("class", "axis-label")
+    const yScaleTemp = d3.scaleLinear()
+        .domain([0, 10])
+        .range([height, 0]);
+    const yScaleHum = d3.scaleLinear()
+        .domain([0, 10])
+        //.domain([0, d3.max(sensorsData, d => Math.max(d.temperature, d.soilHumidity, d.airHumidity))])
+        .range([height, 0]);
 
-svg.append("g")
-    .attr("transform", `translate(0, 0)`)
-    .attr("class", "hum-axis")
-    .call(d3.axisLeft(yScaleHum).ticks(10))
-    .selectAll(".tick text")
-    .attr("class", "axis-label");
+    svg.append("g")
+        .attr("transform", `translate(${width}, 0)`)
+        .attr("class", "temp-axis")
+        .call(d3.axisRight(yScaleTemp).ticks(10))
+        .selectAll(".tick text")
+        .attr("class", "axis-label")
+
+    svg.append("g")
+        .attr("transform", `translate(0, 0)`)
+        .attr("class", "hum-axis")
+        .call(d3.axisLeft(yScaleHum).ticks(10))
+        .selectAll(".tick text")
+        .attr("class", "axis-label");
 
 // Ось X для времени
-svg.append("g")
-    .attr("transform", `translate(0,${height})`)
-    //.style("stroke", "#227c9d")
-    .call(d3.axisBottom(xScale).tickFormat(d3.timeFormat('%H:%M')).ticks(d3.timeHour.every(2)))
-    .selectAll(".tick text")
-    //.style("stroke", "#227c9d")
-    .attr("class", "axis-label");
+    svg.append("g")
+        .attr("transform", `translate(0,${height})`)
+        //.style("stroke", "#227c9d")
+        .call(d3.axisBottom(xScale).tickFormat(d3.timeFormat('%H:%M')).ticks(d3.timeHour.every(2)))
+        .selectAll(".tick text")
+        //.style("stroke", "#227c9d")
+        .attr("class", "axis-label");
 
-svg.append("text")
-    .attr("class", "label")
-    .attr("class", "y label")
-    //.attr("text-anchor", "end")
-    .attr("transform", "rotate(-90)")
-    .attr("y", width+margin.left-7)
-    .attr("x", -margin.top-185)
-    .attr("transform", "rotate(-90)")
-    .text("Temperature [°C]");
+    svg.append("text")
+        .attr("class", "label")
+        .attr("class", "y label")
+        //.attr("text-anchor", "end")
+        .attr("transform", "rotate(-90)")
+        .attr("y", width+margin.left-7)
+        .attr("x", -margin.top-185)
+        .attr("transform", "rotate(-90)")
+        .text("Temperature [°C]");
 
-svg.append("text")
-    .attr("class", "label")
-    .attr("class", "y label")
-    .attr("text-anchor", "end")
-    .attr("transform", "rotate(-90)")
-    .attr("y", -margin.left+20)
-    .attr("x", -margin.top-100)
-    //.attr("dy", ".75em")
-    .attr("transform", "rotate(-90)")
-    .text("Humidity [%]");
+    svg.append("text")
+        .attr("class", "label")
+        .attr("class", "y label")
+        .attr("text-anchor", "end")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -margin.left+20)
+        .attr("x", -margin.top-100)
+        //.attr("dy", ".75em")
+        .attr("transform", "rotate(-90)")
+        .text("Humidity [%]");
 
 
-svg.append("text")
-    .attr("class", "label")
-    .attr("class", "y label")
-    //.attr("text-anchor", "middle")
-    .attr("y", height+margin.top+20)
-    .attr("x", width/2-20)
-    //.attr("dy", ".75em")
-    //.attr("transform", "rotate(-90)")
-    .text("Time");
+    svg.append("text")
+        .attr("class", "label")
+        .attr("class", "y label")
+        //.attr("text-anchor", "middle")
+        .attr("y", height+margin.top+20)
+        .attr("x", width/2-20)
+        //.attr("dy", ".75em")
+        //.attr("transform", "rotate(-90)")
+        .text("Time");
 
 // Ось Y для температуры
 
 
-svg.selectAll(".x-grid")
-    .data(xScale.ticks(d3.timeHour.every(2)))  // Check if you need to slice or use the entire array
-    .join("line")
-    .attr("class", "x-grid")
-    .attr("x1", d => xScale(d))
-    .attr("x2", d => xScale(d))
-    .attr("y1", 0)
-    .attr("y2", height)
-    .attr("stroke", "#e0e0e0")
-    .attr("stroke-width", 0.5);
+    svg.selectAll(".x-grid")
+        .data(xScale.ticks(d3.timeHour.every(2)))  // Check if you need to slice or use the entire array
+        .join("line")
+        .attr("class", "x-grid")
+        .attr("x1", d => xScale(d))
+        .attr("x2", d => xScale(d))
+        .attr("y1", 0)
+        .attr("y2", height)
+        .attr("stroke", "#e0e0e0")
+        .attr("stroke-width", 0.5);
 
-svg.selectAll(".y-grid")
-    .data(yScaleTemp.ticks().slice(1))  // Check if you need to slice or use the entire array
-    .join("line")
-    .attr("class", "x-grid")
-    .attr("y1", d => yScaleTemp(d))
-    .attr("y2", d => yScaleTemp(d))
-    .attr("x1", 0)
-    .attr("x2", width)
-    .attr("stroke", "#e0e0e0")
-    .attr("stroke-width", 0.5);
+    svg.selectAll(".y-grid")
+        .data(yScaleTemp.ticks().slice(1))  // Check if you need to slice or use the entire array
+        .join("line")
+        .attr("class", "x-grid")
+        .attr("y1", d => yScaleTemp(d))
+        .attr("y2", d => yScaleTemp(d))
+        .attr("x1", 0)
+        .attr("x2", width)
+        .attr("stroke", "#e0e0e0")
+        .attr("stroke-width", 0.5);
 
-// Добавление диаграммы Ганта (Зоны полива)
-function update(date_range, data, dataGantt) {
-    //console.log($(".errorBlock").length);
+
+
 
     console.log(data);
     if(data == ""){
         console.error("There is no data for this time range!");
-        if($(".errorBlock").length == 0){
-            svg.append('rect')
-                .attr('width', width + margin.left + margin.right)
-                .attr('height', height + margin.top + margin.bottom)
-                .attr('fill', "black")
-                .attr('class', "errorBlock")
-                .style("opacity", 0)
-                .transition()
-                .duration(1000)
-                .ease(d3.easeCubicInOut)  // Ease function for smooth transition
-                .style("opacity", 0.5)  // Animate to full opacity
-                .attr("width", width + margin.left + margin.right * 1.1)  // Animate width change
-                .attr("height", height + margin.top + margin.bottom * 1.1);
-        }
         return;
     }else{
-        svg.selectAll('.errorBlock')
-            //.style("opacity", 0.5)
-            .transition()
-            .duration(1000)
-            .ease(d3.easeCubicInOut)  // Ease function for smooth transition
-            .style("opacity", 0)
-            .remove()
     }
 
     console.log(date_range);

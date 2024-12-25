@@ -1,11 +1,11 @@
 #chart {
-    position: relative;
+    /*position: relative;*/
     width: 100%;
 }
 
-#statistics{
-    width: 600px;
-}
+/*#statistics{*/
+/*    width: 600px;*/
+/*}*/
 
 .gantt-task {
     opacity: 0.5;
@@ -66,12 +66,14 @@
     fill: #444;
 }
 
-#errorBlock {
-    visibility: hidden;
-    position: absolute;
-    height: 100%;
-    display: block;
-    opacity: 0;
-    transition: visibility 0s, opacity 0.5s linear;
-    background-color: black;
-}
+/*#errorBlock {*/
+/*    visibility: hidden;*/
+/*    position: absolute;*/
+/*    height: 100%;*/
+/*    display: block;*/
+/*    opacity: 0;*/
+/*    transition: visibility 0s, opacity 0.5s linear;*/
+/*    background-color: black;*/
+/*}*/
+
+

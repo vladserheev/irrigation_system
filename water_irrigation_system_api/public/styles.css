@@ -1,83 +1,373 @@
-/* Add styles for the navbar */
+/* Ogólne ustawienia stylu */
+body {
+    font-family: 'Roboto', Arial, sans-serif;
+    background: linear-gradient(to bottom, #c5e0f8, #e6f7ff);
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    text-align: center;
+    color: #00509e;
+    margin-top: 10px;
+    font-size: 2.5em;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+h2 {
+    text-align: left;
+    color: #042443;
+    margin-top: 10px;
+    letter-spacing: 1px;
+}
+
+p {
+    font-size: 1.2em;
+    margin: 10px 0;
+}
+
+span {
+    font-weight: bold;
+}
+
+/* Nawigacja */
 nav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
     margin: 20px 0;
-}
-
-nav button.active {
-    background-color: #cccccc; /* Darker blue for active tab */
-}
-
-.status {
     padding: 10px;
-    border: 1px solid #ccc;
-    margin-bottom: 10px;
-    width: 35%; /* Set a width for the container */
-    margin: 20px; /* Add some margin for aesthetics */
-    display: none; /* Initially hide all sections */
+    background-color: #00509e;
+    border-radius: 10px;
 }
 
-.status p, .input-field{
-    display: flex; /* Use flexbox to align items in a row */
-    justify-content: space-between; /* Space between label and button */
-    align-items: center; /* Center the items vertically */
-    margin: 10px 0; /* Space between each item */
+.nav-button {
+    background: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    font-size: 1em;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
 }
 
-.toggledButton{
-    padding: 5px 10px; /* Button padding */
-    font-size: 12px; /* Button font size */
-    cursor: pointer; /* Change cursor on hover */
+.nav-button:hover {
+    background: #0056b3;
+    transform: scale(1.1);
 }
 
-.zone {
-    margin-bottom: 20px;
+.nav-button:active {
+    transform: scale(0.9);
+}
+
+
+
+h3 {
+    color: #007bff;
+    margin-bottom: 30px;
+}
+
+/* Przyciski sterowania */
+.toggledButton {
+    padding: 10px 15px;
+    background: #3c42f0;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.toggledButton.active {
+    background: #0942fc;
 }
 
 label {
     display: block;
-    margin-bottom: 5px;
-}
-
-input[type="number"] {
-    width: calc(100% - 10px);
-    padding: 5px;
-    margin-bottom: 15px;
-}
-
-.input-field {
-    margin-left: 1em;
-    margin-bottom: .5em;
-}
-
-/* Flexbox for column layout */
-.toggledButton {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 10px; /* Space between the time inputs */
-}
-
-label {
     margin-bottom: 5px; /* Space between label and input */
 }
 
-/* Optional: Center-align text */
-form h3 {
-    text-align: left; /* Change to center if you prefer */
-    margin-bottom: 10px;
+/* Formularze */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
-form button {
+input[type="range"] {
+    width: 100%;
+}
+
+.value {
+    font-weight: bold;
+    color: #00509e;
+}
+
+input[type="submit"], .add-schedule {
+    background: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
     cursor: pointer;
+    transition: background 0.2s;
 }
 
+input[type="submit"]:hover, .add-schedule:hover {
+    background: #0056b3;
+}
+
+
+/* Strefy */
+.zone, .zoneTimedMode {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h4 {
+    color: #333;
+}
+
+/* Statystyki */
+#chart {
+    height: 300px;
+    margin: 20px 0;
+    border: 2px solid #007bff;
+    border-radius: 10px;
+}
+
+.tooltip {
+    background: #00509e;
+    color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    position: absolute;
+    display: none;
+}
+
+.line {
+    display: block;
+    height: 3px;
+    border: none;
+    border-top: 3px solid #4b67c4;
+    margin: 1em 0;
+    padding: 0;
+}
 #status {
     margin-top: 20px;
     color: green; /* Optional: Color for success messages */
 }
 
+.connectToEsp{
+    font-size: 17px;
+}
 
-@media only screen and (max-width: 600px) {
+/* Responsywność */
+@media (max-width: 768px) {
+    nav {
+        flex-direction: column;
+    }
+
+    .nav-button {
+        width: 100%;
+    }
+
+    .status {
+        max-width: 95%;
+    }
+
     .status, #settingsForm {
         width: 80%;
     }
+
+}/* Ogólne ustawienia stylu */
+body {
+    font-family: 'Roboto', Arial, sans-serif;
+    background: linear-gradient(to bottom, #c5e0f8, #e6f7ff);
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    text-align: center;
+    color: #00509e;
+    margin-top: 10px;
+    font-size: 2.5em;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+h2 {
+    text-align: left;
+    color: #042443;
+    margin-top: 10px;
+    letter-spacing: 1px;
+}
+
+p {
+    font-size: 1.2em;
+    margin: 10px 0;
+}
+
+span {
+    font-weight: bold;
+}
+
+/* Nawigacja */
+nav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0;
+    padding: 10px;
+    background-color: #00509e;
+    border-radius: 10px;
+}
+
+.nav-button {
+    background: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    font-size: 1em;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.nav-button:hover {
+    background: #0056b3;
+    transform: scale(1.1);
+}
+
+.nav-button:active {
+    transform: scale(0.9);
+}
+
+
+
+h3 {
+    color: #007bff;
+    margin-bottom: 30px;
+}
+
+/* Przyciski sterowania */
+.toggledButton {
+    padding: 10px 15px;
+    background: #3c42f0;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.toggledButton.active {
+    background: #0942fc;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px; /* Space between label and input */
+}
+
+/* Formularze */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+input[type="range"] {
+    width: 100%;
+}
+
+.value {
+    font-weight: bold;
+    color: #00509e;
+}
+
+input[type="submit"], .add-schedule {
+    background: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+input[type="submit"]:hover, .add-schedule:hover {
+    background: #0056b3;
+}
+
+
+/* Strefy */
+.zone, .zoneTimedMode {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h4 {
+    color: #333;
+}
+
+/* Statystyki */
+#chart {
+    height: 300px;
+    margin: 20px 0;
+    border: 2px solid #007bff;
+    border-radius: 10px;
+}
+
+.tooltip {
+    background: #00509e;
+    color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    position: absolute;
+    display: none;
+}
+
+.line {
+    display: block;
+    height: 3px;
+    border: none;
+    border-top: 3px solid #4b67c4;
+    margin: 1em 0;
+    padding: 0;
+}
+#status {
+    margin-top: 20px;
+    color: green; /* Optional: Color for success messages */
+}
+
+.connectToEsp{
+    font-size: 17px;
+}
+
+/* Responsywność */
+@media (max-width: 768px) {
+    nav {
+        flex-direction: column;
+    }
+
+    .nav-button {
+        width: 100%;
+    }
+
+    .status {
+        max-width: 95%;
+    }
+
+    .status, #settingsForm {
+        width: 80%;
+    }
+
 }
