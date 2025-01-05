@@ -8711,13 +8711,97 @@
       "temperature": null,
       "soilHumidity": 38,
       "airHumidity": null
+    },
+    {
+      "date": "2024-12-26T12:47:00.000Z",
+      "temperature": 20.2,
+      "soilHumidity": 55,
+      "airHumidity": 57.5
+    },
+    {
+      "date": "2024-12-27T08:00:00Z",
+      "temperature": 19.8,
+      "soilHumidity": 90,
+      "airHumidity": 53
+    },
+    {
+      "date": "2024-12-27T09:46:00Z",
+      "temperature": 20.1,
+      "soilHumidity": 79,
+      "airHumidity": 51.1
+    },
+    {
+      "date": "2024-12-27T10:37:00Z",
+      "temperature": 19.2,
+      "soilHumidity": 73,
+      "airHumidity": 51.6
+    },
+    {
+      "date": "2024-12-27T11:00:00Z",
+      "temperature": 20.3,
+      "soilHumidity": 77,
+      "airHumidity": 54.4
+    },
+    {
+      "date": "2024-12-27T12:43:00Z",
+      "temperature": 19,
+      "soilHumidity": 75,
+      "airHumidity": 58.9
+    },
+    {
+      "date": "2024-12-27T13:00:00Z",
+      "temperature": 18.7,
+      "soilHumidity": 97,
+      "airHumidity": 56.8
+    },
+    {
+      "date": "2024-12-27T14:12:00Z",
+      "temperature": 18.5,
+      "soilHumidity": 95,
+      "airHumidity": 57.3
+    },
+    {
+      "date": "2024-12-27T15:45:00Z",
+      "temperature": 21,
+      "soilHumidity": 91,
+      "airHumidity": 55.2
+    },
+    {
+      "date": "2024-12-27T16:00:00Z",
+      "temperature": 19.3,
+      "soilHumidity": 66,
+      "airHumidity": 54.9
+    },
+    {
+      "date": "2024-12-27T17:23:00Z",
+      "temperature": 20.1,
+      "soilHumidity": 89,
+      "airHumidity": 53.7
+    },
+    {
+      "date": "2024-12-26T13:15:00.000Z",
+      "temperature": null,
+      "soilHumidity": 71,
+      "airHumidity": null
+    },
+    {
+      "date": "2024-12-07T12:17:21.000Z",
+      "temperature": 18.4,
+      "soilHumidity": 73,
+      "airHumidity": 55.3
+    },
+    {
+      "date": "2024-12-07T12:47:21.000Z",
+      "temperature": null,
+      "soilHumidity": 59,
+      "airHumidity": null
     }
   ],
   "zonesWateringData": [
     {
       "zone": "zone1",
-      "start": "2024-12-12T14:40:06.000Z",
-      "end": "2024-12-12T14:42:06.000Z"
+      "start": "2024-12-27T12:45:06.000Z",
+      "end": "2024-12-27T16:00:06.000Z"
     },
     {
       "zone": "zone1",
@@ -8728,6 +8812,21 @@
       "zone": "zone1",
       "start": "2024-12-12T15:30:06.000Z",
       "end": "2024-12-12T15:36:06.000Z"
+    },
+    {
+      "zone": "zone1",
+      "start": "2024-12-26T12:24:06.000Z",
+      "end": "2024-12-26T12:25:06.000Z"
+    },
+    {
+      "zone": "zone1",
+      "start": "2024-12-26T13:02:09.000Z",
+      "end": "2024-12-26T13:03:09.000Z"
+    },
+    {
+      "zone": "zone1",
+      "start": "2024-12-26T13:04:09.000Z",
+      "end": "2024-12-26T13:05:09.000Z"
     }
   ]
 }

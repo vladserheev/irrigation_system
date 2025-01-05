@@ -5,184 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Nawodniania</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --primary-bg: #f0f7f7;
-            --accent-color: #00a5cf;
-            --success-color: #4ade80;
-            --warning-color: #facc15;
-            --danger-color: #f87171;
-        }
-
-        body {
-            background-color: #ffffff;
-            color: #1f2937;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-
-        .card {
-            background-color: var(--primary-bg);
-            border-radius: 16px;
-            padding: 24px;
-            margin: 16px 0;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-        }
-        .nav-card.active{
-            display: block;
-        }
-
-
-        .stat-card {
-            background-color: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 8px 0;
-        }
-
-        input[type="range"]{
-            accent-color: var(--accent-color);
-        }
-
-        button[type="submit"]{
-            background-color: var(--accent-color);
-        }
-
-        .toggle-button {
-            background-color: white;
-            border: 2px solid #e5e7eb;
-            border-radius: 24px;
-            padding: 8px 24px;
-            transition: all 0.2s;
-        }
-
-        .toggle-button.control.active{
-            background-color: var(--success-color);
-            color: white;
-            border-color: var(--success-color);
-        }
-
-        .toggle-button.active {
-            background-color: var(--accent-color);
-            color: white;
-            border-color: var(--accent-color);
-        }
-
-        .chart-container {
-            background-color: var(--primary-bg);
-            border-radius: 16px;
-            /*height: 240px;*/
-            margin: 24px 0;
-        }
-
-        .weather-card {
-            top: 24px;
-            right: 24px;
-            background-color: white;
-            border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            min-width: 200px;
-        }
-
-        .weather-icon {
-            font-size: 2rem;
-            margin-right: 8px;
-        }
-
-        #navMenu.open {
-            max-height: 200px; /* Adjust based on content */
-            margin-top: 0.5rem;
-        }
-
-        @media (min-width: 768px) {
-            #navMenu {
-                max-height: none !important;
-                margin-top: 0 !important;
-            }
-        }
-
-        @media (max-width: 640px) {
-            .stat-card {
-                padding: 16px;
-            }
-
-            .weather-icon {
-                font-size: 1.5rem;
-            }
-        }
-
-        @media (min-width: 641px) and (max-width: 1024px) {
-            #weatherCard {
-                grid-column: span 2;
-            }
-        }
-
-        #preloader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.5s ease-in-out;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--accent-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .fade-out {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .content {
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
-        }
-
-        .content.visible {
-            opacity: 1;
-        }
-
-        .manual-card, .timed-card{
-            background-color: white;
-        }
-
-        .backgroung-white{
-            background-color: white;
-        }
-
-        #chart {
-            min-width: 500px;
-            height: 100%;
-            min-height: 400px;
-        }
-
-        svg {
-            width: 100%;
-            height: 100%;
-        }
-
-        #statistics{
-            overflow: auto;
-        }
-
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body class="p-6 max-w-6xl mx-auto relative">
 
@@ -191,7 +14,7 @@
 </div>
 
 <header class="mb-8">
-    <h1 class="text-4xl font-bold mb-4 sm:mb-6">System Nawodniania</h1>
+    <h1 class="text-4xl font-bold mb-4 sm:mb-6">System Nawadniania</h1>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div class="stat-card">
             <div class="text-sm mb-1">Status połączenia</div>
@@ -244,13 +67,20 @@
                 <div class="stat-card">
                     <div class="flex justify-between items-center">
                         <span>Pompa</span>
-                        <button class="toggle-button control" id="pump">WYŁ</button>
+                        <label class="switch">
+                            <input type="checkbox" id="pump" class="toggle-button control">
+                            <span class="slider round"></span>
+                        </label>
                     </div>
+
                 </div>
                 <div class="stat-card">
                     <div class="flex justify-between items-center">
                         <span>Zawór główny</span>
-                        <button class="toggle-button control" id="valve1">WYŁ</button>
+                        <label class="switch">
+                            <input type="checkbox" id="valve1" class="toggle-button control">
+                            <span class="slider round"></span>
+                        </label>
                     </div>
                 </div>
             </div>
@@ -258,36 +88,41 @@
                 <div class="stat-card">
                     <div class="flex justify-between items-center">
                         <span>Zawór 1</span>
-                        <button class="toggle-button control" id="valve2">WYŁ</button>
+                        <label class="switch">
+                            <input type="checkbox" id="valve2" class="toggle-button control">
+                            <span class="slider round"></span>
+                        </label>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="flex justify-between items-center">
                         <span>Zawór 2</span>
-                        <button class="toggle-button control" id="valve3">WYŁ</button>
+                        <label class="switch">
+                            <input type="checkbox" id="valve3" class="toggle-button control">
+                            <span class="slider round"></span>
+                        </label>
                     </div>
                 </div>
             </div>
         </section>
-
         <section class="card sensors" id="CurrentState">
             <h2 class="text-xl font-semibold mb-4">Czujniki</h2>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="stat-card">
                     <div class="text-sm text-gray-600">Temperatura</div>
-                    <div class="text-2xl font-semibold">24°C <span id="TemperatureSensorOutput"></span></div>
+                    <div class="text-2xl font-semibold"><span id="TemperatureSensorOutput">--</span></div>
                 </div>
                 <div class="stat-card">
                     <div class="text-sm text-gray-600">Wilgotność powietrza</div>
-                    <div class="text-2xl font-semibold">65% <span id="AirHumiditySensorOutput"></span></div>
+                    <div class="text-2xl font-semibold"><span id="AirHumiditySensorOutput">--</span></div>
                 </div>
                 <div class="stat-card">
                     <div class="text-sm text-gray-600">Wilgotność gleby 1</div>
-                    <div class="text-2xl font-semibold">45% <span id="SoilMoistureSensorOutput"></span></div>
+                    <div class="text-2xl font-semibold"><span id="SoilMoistureSensorOutput">--</span></div>
                 </div>
                 <div class="stat-card">
                     <div class="text-sm text-gray-600">Wilgotność gleby 2</div>
-                    <div class="text-2xl font-semibold">45%</div>
+                    <div class="text-2xl font-semibold">--</div>
                 </div>
             </div>
         </section>
@@ -316,9 +151,9 @@
         <form id="timeSettingsForm">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Zone 1 -->
-                <div class="backgroung-white card space-y-4 p-4 rounded-lg shadow-md border border-gray-200" id="zone1">
+                <div class="backgroung-white zoneTimedMode card space-y-4 p-4 rounded-lg shadow-md border border-gray-200" id="zone1">
                     <h3 class="text-xl font-semibold text-gray-500">Strefa 1</h3>
-                    <div class="schedules">
+                    <div class="schedules-block">
                         <!-- Schedule Item -->
                     </div>
                     <button type="button" class="add-schedule w-full px-4 py-2 text-sm text-blue-600 hover:text-blue-700 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors" data-zone="1">
@@ -327,9 +162,9 @@
                 </div>
 
                 <!-- Zone 2 -->
-                <div class="backgroung-white card space-y-4 p-4 rounded-lg shadow-md border border-gray-200" id="zone2">
+                <div class="backgroung-white zoneTimedMode card space-y-4 p-4 rounded-lg shadow-md border border-gray-200" id="zone2">
                     <h3 class="text-xl font-semibold text-gray-500">Strefa 2</h3>
-                    <div class="schedules space-y-4">
+                    <div class="schedules-block space-y-4">
                         <!-- Schedule Item -->
 
 
