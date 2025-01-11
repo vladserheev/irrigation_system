@@ -311,6 +311,7 @@ class FormManager {
         return true;
     }
 }
+
 class ScheduleManager  {
     static addSchedule(zoneName, startTime, finishTime){
         const zoneNumber = zoneName.split(" ")[1];
@@ -373,11 +374,11 @@ class ScheduleManager  {
                 <div class="backgroung-white card grid grid-cols-2 gap-4 pr-8">
                     <div class="flex flex-col">
                         <label class="text-sm font-medium text-gray-600 mb-1">Start</label>
-                        <input type="time" name="start" value="${defaultStart}" class="start form-input rounded-md border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors">
+                        <input type="time" name="start" value="${defaultStart}" class="start form-input rounded-md border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors" required>
                     </div>
                     <div class="flex flex-col">
                         <label class="text-sm font-medium text-gray-600 mb-1">End</label>
-                        <input type="time" name="end" value="${defaultEnd}" class="end form-input rounded-md border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors">
+                        <input type="time" name="end" value="${defaultEnd}" class="end form-input rounded-md border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-colors" required>
                     </div>
                 </div>
             </div>
@@ -385,12 +386,14 @@ class ScheduleManager  {
     }
 
     static updateSchedules(zones){
-        console.log(zones);
+        console.log("Updating zone!!!!!");
+        $(`.schedules-block`).empty();
 
         zones.forEach(zone => {
             const zoneName = zone.name.toLowerCase();
             console.log(zoneName);
-            $(`#${zoneName} .schedules`).empty();
+
+           // $(`#${zoneName} .schedules`).empty();
             zone.schedules.forEach(schedule => {
                 //console.log(schedule.startHour.toString())
                 const startVal = this.makeValidTime(schedule.startHour, schedule.startMinute);
@@ -403,23 +406,23 @@ class ScheduleManager  {
     static makeValidTime(hours, minutes){
         //const validedTime = "";
         hours = hours.toString();
-    minutes = minutes.toString();
-    var newHours = "";
-    var newMinutes = "";
+        minutes = minutes.toString();
+        var newHours = "";
+        var newMinutes = "";
 
-    if (hours < 10) {
-        newHours += "0";
+        if (hours < 10) {
+            newHours += "0";
+        }
+        if (minutes < 10) {
+            newMinutes += "0";
+        }
+        //console.log(hours);
+        //console.log(minutes);
+        newHours += hours;
+        newMinutes += minutes;
+        return (newHours + ":" + newMinutes);
+        }
     }
-    if (minutes < 10) {
-        newMinutes += "0";
-    }
-    //console.log(hours);
-    //console.log(minutes);
-    newHours += hours;
-    newMinutes += minutes;
-    return (newHours + ":" + newMinutes);
-    }
-}
 
 $(document).ready(function () {
     UIController.initializeUI();

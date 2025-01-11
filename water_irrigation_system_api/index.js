@@ -7,7 +7,6 @@ const { log } = require('./utils/logger');
 const { pushStatisticsToDB,prepareDataSetTimedMode,pushWateringLogDataToDB, getConfigForRootFromDB, pushSensorsDataToDB,getDataForChartFromDB, updateZonesConfigTimedSettings, getZonesStateFromDB, updateCurrentStateOnClientSide, prepareDataFromEspForClient } = require('./src/core');
 const app = express();
 const server = createServer(app);
-//const io = new Server(server);
 const cors = require('cors');
 const {response} = require("express");
 const readline = require("readline");
@@ -209,8 +208,6 @@ app.post('/api/manualSettingsForm', (req, res) => {
 
     if (body) {
         res.status(200).send(body);  // Respond with success
-    } else {
-        res.status(400).send({ error: "Invalid data." });  // Handle invalid request body
     }
 });
 
@@ -234,7 +231,7 @@ app.post('/api/timeSettingsForm', async (req, res) => {
         res.status(200).send('Zones configuration updated successfully.' + newSchedulesData);
     } catch (error) {
         log("error", error);
-        res.status(500).send('Failed to update zones configuration');
+        //res.status(500).send('Failed to update zones configuration');
     }
 });
 
